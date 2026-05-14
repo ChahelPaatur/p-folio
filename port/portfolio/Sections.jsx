@@ -428,7 +428,7 @@ function HireMe() {
 /* === Education ===================================================== */
 function Education() {
   const schools = [
-    { logo: "assets/logo-kimball.jpg", tag: "Current · 11th", name: "John C. Kimball High School", loc: "Tracy, CA", years: "2024 — 2027 · GPA 3.83 / 4.40w", crestClass: "kimball" },
+    { logo: "assets/logo-kimball.jpg", tag: "Current · 12th", name: "John C. Kimball High School", loc: "Tracy, CA", years: "2024 — 2027 · GPA 3.83 / 4.40w", crestClass: "kimball" },
     { logo: "assets/logo-paw-washington.png", tag: "Prior coursework", name: "Washington High School", loc: "Fremont, CA", years: "2023 — 2024", crestClass: "washington" },
     { logo: "assets/logo-uw.png", tag: "Target · Undergrad", name: "University of Washington", loc: "Seattle, WA", years: "Electrical & Computer Engineering · Applying 2027", crestClass: "uw" }
   ];
@@ -463,7 +463,7 @@ function Certifications() {
     { logo: "assets/logo-uiuc.jpeg", logoKind: "circle", issuer: "UIUC", year: "2022", name: "Accelerated CS Fundamentals", skills: ["C++", "Data structures"], desc: "Object-oriented data structures and algorithms in C++ — the accelerated track." },
     { logo: "assets/logo-michigan.png", logoKind: "circle", issuer: "U. of Michigan", year: "—", name: "Python 3 Programming", skills: ["Python", "OOP"], desc: "Five-course specialization in Python 3 — classes, files, data, and applications." },
     { logo: "assets/logo-autodesk.png", logoKind: "circle", issuer: "Autodesk · Udemy", year: "—", name: "Fusion 360 Certified", skills: ["CAD", "+7"], desc: "Parametric 3D CAD modeling for product design, simulation and fabrication." },
-    { logo: "assets/logo-uci.png", logoKind: "circle", issuer: "UC Irvine", year: "2025", name: "GATI Research Program", skills: ["Research", "AI"], desc: "Applied AI and engineering research methodology under UC Irvine faculty mentorship." }
+    { logo: "assets/logo-uci.png", logoKind: "circle", issuer: "UC Irvine", year: "2025", name: "GATI Research Program", skills: ["Research", "AI", "$50K"], desc: "Selected for UC Irvine's top entrepreneurial group — $50K startup funding, faculty mentorship, and applied AI research." }
   ];
   return (
     <section className="block" id="certs">
@@ -496,7 +496,7 @@ function Leadership() {
     { role: "Regional Champion", name: "Science Olympiad", desc: "First place regional in the Chemistry event; contributed to multi-event team placements across the season.", href: "https://scioly.org/", logo: "assets/logo-sof.jpeg", logoKind: "square" },
     { role: "Research · Student Network", name: "Princeton University", desc: "Working with a couple of Princeton students I know on physical-AI research threads — shared problem framings, paper drafts and review.", href: "https://www.princeton.edu/", logo: "assets/logo-princeton.png", logoKind: "square" },
     { role: "Invited Collaborator", name: "University of Oxford", desc: "Invited to engage with an Oxford research program. Did some collaborative work alongside the cohort — didn't formally enroll.", href: "https://www.ox.ac.uk/", logo: "assets/logo-oxford.jpeg", logoKind: "square" },
-    { role: "GATI Research Fellow", name: "UC Irvine", desc: "Applied AI and engineering research methodology under UC Irvine faculty mentorship through the GATI program.", href: "https://gati.uci.edu/", logo: "assets/logo-uci.png", logoKind: "square" }
+    { role: "GATI Research Fellow · $50K Startup", name: "UC Irvine", desc: "Selected for UC Irvine's top entrepreneurial cohort through the GATI program — $50,000 in startup funding, faculty mentorship, and applied AI research.", href: "https://gati.uci.edu/", logo: "assets/logo-uci.png", logoKind: "square" }
   ];
   return (
     <section className="block" id="leadership">
@@ -524,7 +524,7 @@ function About() {
     <section className="block" id="about">
       <window.BlockHeader tag="ABOUT" title="Operator." />
       <div className="about-grid">
-        <p className="about-bio reveal">High-school junior in Tracy, CA. I spend most of my time building autonomous drones, writing fault-detection systems for spacecraft, and publishing research on physical AI. Outside the lab I run the PII Research Network — 1,000+ student researchers across 20+ schools.</p>
+        <p className="about-bio reveal">18-year-old senior in Tracy, CA. I spend most of my time building autonomous drones, writing fault-detection systems for spacecraft, and publishing research on physical AI. Outside the lab I run the PII Research Network — 1,000+ student researchers across 20+ schools.</p>
         <div className="about-meta reveal">
           <div className="cell"><div className="label">Based</div><div className="val lg">Tracy, CA</div></div>
           <div className="cell"><div className="label">GPA</div><div className="val lg">3.83 / 4.40w</div></div>
