@@ -286,12 +286,12 @@ function Work() {
           desc="A physical-AI runtime that translates natural language into executable robotic actions across drones, rovers and humanoids. Full pipeline — perception, planning, execution, feedback, adaptation."
           tags={["VLA", "PPO", "PyTorch", "Cross-platform"]}><window.AetherScene /></Project>
         <Project num="02 / FLIGHT" span="span-5" theme="orange" status={{ kind: "live", label: "In flight" }}
-          name="Autonomous Drone" sub="FPV + Onboard Compute"
+          name="Autonomous Drone" sub="AI Quadcopter"
           desc="Custom FPV airframe with SpeedyBee F7 + Raspberry Pi bridging autonomy and low-level motor control."
           tags={["F7", "RPi", "Sensor fusion"]}><window.DroneScene /></Project>
         <Project num="03 / SAURON" span="span-5" theme="red" badge={<PalantirBadge />} status={{ kind: "r", label: "2nd Overall" }}
           link="https://devpost.com/software/sauron-sfbc74"
-          name="SAURON" sub="RF Search & Rescue"
+          name="SAURON" sub="Node Module"
           desc="Distributed ESP32 mesh using RSSI triangulation, hardened against signal noise and interference, with drone verification. Won the Palantir sponsor award at hackathon."
           tags={["ESP32", "RSSI", "RF", "Palantir"]}><window.SauronScene /></Project>
         <Project num="04 / FDIR" span="span-7" status={{ kind: "r", label: "Patent pending" }}
@@ -299,7 +299,7 @@ function Work() {
           desc="Hybrid DRL + rule-based safety system for spacecraft fault detection. PPO agent with hard safety constraints, simulated against 100+ failure modes."
           tags={["DRL", "PPO", "Safety", "Aerospace"]}><VizFDIR /></Project>
         <Project num="05 / ATLAS" span="span-6" status={{ kind: "", label: "In progress" }}
-          name="Atlas" sub="Humanoid Engineering Assistant"
+          name="Atlas" sub="Humanoid"
           desc="Desk-mounted physical-AI assistant with camera, projection and laser guidance. Detects wiring and components, overlays real-time instructions via voice."
           tags={["CV", "AR", "Humanoid"]}><window.HumanoidScene /></Project>
         <Project num="06 / LANG" span="span-6" theme="lang"
@@ -491,11 +491,11 @@ function Certifications() {
 function Leadership() {
   const items = [
     { role: "Int'l Vice President", name: "PII Research Network", desc: "Expanded the network to 20+ schools globally and 1,000+ student researchers. Built the mentorship pipeline and engineering project tracks.", href: "https://www.pii-international.org/", logo: "assets/logo-pii.png", logoKind: "square" },
-    { role: "Sponsor Award · 2nd Overall", name: "Palantir Technologies", desc: "SAURON — RF-based search & rescue — picked up the Palantir sponsor award at hackathon for the distributed ESP32 mesh + drone verification pipeline.", href: "https://www.palantir.com/", logo: "assets/logo-palantir.png", logoKind: "wide" },
+    { role: "Sponsor Award · 2nd Overall", name: "Palantir Technologies", desc: "SAURON — RF-based search & rescue — picked up the Palantir sponsor award at hackathon for the distributed ESP32 mesh + drone verification pipeline.", href: "https://devpost.com/software/sauron-sfbc74", logo: "assets/logo-palantir.png", logoKind: "wide" },
     { role: "Regional Champion", name: "Science Olympiad", desc: "First place regional in the Chemistry event; contributed to multi-event team placements across the season.", href: "https://scioly.org/", logo: "assets/logo-sof.jpeg", logoKind: "square" },
     { role: "Research · Student Network", name: "Princeton University", desc: "Working with a couple of Princeton students I know on physical-AI research threads — shared problem framings, paper drafts and review.", href: "https://www.princeton.edu/", logo: "assets/logo-princeton.png", logoKind: "square" },
     { role: "Invited Collaborator", name: "University of Oxford", desc: "Invited to engage with an Oxford research program. Did some collaborative work alongside the cohort — didn't formally enroll.", href: "https://www.ox.ac.uk/", logo: "assets/logo-oxford.jpeg", logoKind: "square" },
-    { role: "GATI Research Fellow", name: "UC Irvine", desc: "Applied AI and engineering research methodology under UC Irvine faculty mentorship through the GATI program.", href: "https://uci.edu/", logo: "assets/logo-uci.png", logoKind: "square" }
+    { role: "GATI Research Fellow", name: "UC Irvine", desc: "Applied AI and engineering research methodology under UC Irvine faculty mentorship through the GATI program.", href: "https://gati.uci.edu/", logo: "assets/logo-uci.png", logoKind: "square" }
   ];
   return (
     <section className="block" id="leadership">
