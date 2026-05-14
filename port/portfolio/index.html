@@ -8,23 +8,6 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css" />
-
-  <!-- Three.js + GLTFLoader via ES modules (non-blocking) -->
-  <script type="importmap">
-  {
-    "imports": {
-      "three": "https://unpkg.com/three@0.158.0/build/three.module.js",
-      "three/addons/": "https://unpkg.com/three@0.158.0/examples/jsm/"
-    }
-  }
-  </script>
-  <script type="module">
-    import * as THREE from 'three';
-    import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-    THREE.GLTFLoader = GLTFLoader;
-    window.THREE = THREE;
-    window.dispatchEvent(new Event('three-ready'));
-  </script>
 </head>
 <body style="background-color: rgb(0, 0, 0); font-family: Geist" data-screen-label="Portfolio · Main">
   <div id="root"></div>
