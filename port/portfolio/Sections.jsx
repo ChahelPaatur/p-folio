@@ -492,7 +492,7 @@ function Leadership() {
   const items = [
     { role: "Int'l Vice President", name: "PII Research Network", desc: "Expanded the network to 20+ schools globally and 1,000+ student researchers. Built the mentorship pipeline and engineering project tracks.", href: "https://www.pii-international.org/", logo: "assets/logo-pii.png", logoKind: "square" },
     { role: "Sponsor Award · 2nd Overall", name: "Palantir Technologies", desc: "SAURON — RF-based search & rescue — picked up the Palantir sponsor award at hackathon for the distributed ESP32 mesh + drone verification pipeline.", href: "https://www.palantir.com/", logo: "assets/logo-palantir.png", logoKind: "wide" },
-    { role: "Regional Champion", name: "Science Olympiad", desc: "First place regional in the Chemistry event; contributed to multi-event team placements across the season.", href: "#", logo: "assets/logo-sof.jpeg", logoKind: "square" },
+    { role: "Regional Champion", name: "Science Olympiad", desc: "First place regional in the Chemistry event; contributed to multi-event team placements across the season.", href: "https://scioly.org/", logo: "assets/logo-sof.jpeg", logoKind: "square" },
     { role: "Research · Student Network", name: "Princeton University", desc: "Working with a couple of Princeton students I know on physical-AI research threads — shared problem framings, paper drafts and review.", href: "https://www.princeton.edu/", logo: "assets/logo-princeton.png", logoKind: "square" },
     { role: "Invited Collaborator", name: "University of Oxford", desc: "Invited to engage with an Oxford research program. Did some collaborative work alongside the cohort — didn't formally enroll.", href: "https://www.ox.ac.uk/", logo: "assets/logo-oxford.jpeg", logoKind: "square" },
     { role: "GATI Research Fellow", name: "UC Irvine", desc: "Applied AI and engineering research methodology under UC Irvine faculty mentorship through the GATI program.", href: "https://uci.edu/", logo: "assets/logo-uci.png", logoKind: "square" }
@@ -575,7 +575,7 @@ function Footer() {
       <div className="social-row">
         <a href="https://www.linkedin.com/in/chahel-paatur-88a9b4229/" target="_blank" rel="noreferrer" aria-label="LinkedIn"><img src="assets/icon-linkedin.png" alt="" /></a>
         <a href="https://github.com/ChahelPaatur" target="_blank" rel="noreferrer" aria-label="GitHub"><img src="assets/icon-github.png" alt="" /></a>
-        <a href="#" aria-label="Instagram"><img src="assets/icon-instagram.png" alt="" /></a>
+        <a href="https://github.com/ChahelPaatur" target="_blank" rel="noreferrer" aria-label="Instagram"><img src="assets/icon-instagram.png" alt="" /></a>
       </div>
       <span>TRACY, CA</span>
     </footer>

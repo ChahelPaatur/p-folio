@@ -590,7 +590,7 @@ section.block {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  height: 38px;
+  height: 48px;
   margin-bottom: 8px;
   position: relative;
   z-index: 2;
@@ -598,22 +598,22 @@ section.block {
 .corner-logo {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 4px 10px;
+  gap: 10px;
+  padding: 8px 16px;
   border: 1px solid var(--line-2);
   background: rgba(10,10,12,0.5);
-  border-radius: 4px;
+  border-radius: 6px;
   transition: border-color .2s, background .2s;
 }
 .corner-logo:hover { border-color: var(--accent-line); background: rgba(10,10,12,0.75); }
 .corner-logo img {
-  height: 22px; width: auto;
-  max-width: 30px;
+  height: 28px; width: auto;
+  max-width: 38px;
   object-fit: contain;
 }
 .corner-logo span {
   font-family: "Geist Mono", monospace;
-  font-size: 10.5px;
+  font-size: 12.5px;
   color: var(--text);
   letter-spacing: 0.06em;
   text-transform: uppercase;
