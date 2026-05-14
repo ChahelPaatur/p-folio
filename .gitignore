@@ -1,0 +1,5 @@
+.DS_Store
+stls/
+port/portfolio/models/atlas.stl
+port/portfolio/models/sauron.stl
+port/portfolio/models/drone.stl
