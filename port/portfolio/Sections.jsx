@@ -295,6 +295,7 @@ function Work() {
           desc="Distributed ESP32 mesh using RSSI triangulation, hardened against signal noise and interference, with drone verification. Won the Palantir sponsor award at hackathon."
           tags={["ESP32", "RSSI", "RF", "Palantir"]}><window.SauronScene /></Project>
         <Project num="04 / FDIR" span="span-7" status={{ kind: "r", label: "Patent pending" }}
+          link="assets/fdir-paper.docx"
           name="Spacecraft FDIR" sub="Fault Detection & Isolation"
           desc="Hybrid DRL + rule-based safety system for spacecraft fault detection. PPO agent with hard safety constraints, simulated against 100+ failure modes."
           tags={["DRL", "PPO", "Safety", "Aerospace"]}><VizFDIR /></Project>
