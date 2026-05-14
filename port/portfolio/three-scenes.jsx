@@ -107,13 +107,15 @@ function STLViewer(props) {
         renderer.setClearColor(0x000000, 0);
         el.appendChild(renderer.domElement);
 
-        scene.add(new T.AmbientLight(0xffffff, 0.5));
-        var key = new T.DirectionalLight(0xffffff, 1.0);
-        key.position.set(5, 8, 7); scene.add(key);
-        var fill = new T.DirectionalLight(0x8899cc, 0.4);
-        fill.position.set(-4, -2, -5); scene.add(fill);
-        var rim = new T.DirectionalLight(0xaabbff, 0.3);
-        rim.position.set(0, 4, -8); scene.add(rim);
+        scene.add(new T.AmbientLight(0xffffff, 0.7));
+        var key = new T.DirectionalLight(0xffffff, 1.4);
+        key.position.set(5, 10, 7); scene.add(key);
+        var fill = new T.DirectionalLight(0x8899cc, 0.6);
+        fill.position.set(-6, -3, -5); scene.add(fill);
+        var rim = new T.DirectionalLight(0xaabbff, 0.8);
+        rim.position.set(0, 5, -10); scene.add(rim);
+        var top = new T.DirectionalLight(0xffffff, 0.5);
+        top.position.set(0, 12, 0); scene.add(top);
 
         var s = stateRef.current;
         s.drag = false; s.rotX = -0.2; s.rotY = 0;
@@ -131,18 +133,19 @@ function STLViewer(props) {
           geo.computeBoundingSphere();
 
           var mat = new T.MeshPhongMaterial({
-            color: color, emissive: emissive, emissiveIntensity: 0.15,
-            specular: 0x333333, shininess: 50,
+            color: color, emissive: emissive, emissiveIntensity: 0.25,
+            specular: 0x999999, shininess: 90,
+            reflectivity: 0.8,
           });
           var mesh = new T.Mesh(geo, mat);
           var box = geo.boundingBox;
           var center = new T.Vector3(); box.getCenter(center);
           mesh.position.sub(center);
           var size = new T.Vector3(); box.getSize(size);
-          mesh.scale.setScalar(120 / Math.max(size.x, size.y, size.z));
+          mesh.scale.setScalar(200 / Math.max(size.x, size.y, size.z));
 
           scene.add(mesh);
-          camera.position.set(0, 20, 160);
+          camera.position.set(0, 15, 90);
           camera.lookAt(0, 0, 0);
           s.mesh = mesh;
           if (!cancelled) setStatus("ready");
@@ -185,7 +188,7 @@ function STLViewer(props) {
               s.mesh.rotation.x = s.rotX;
               s.mesh.rotation.y = s.rotY;
             }
-            camera.position.z = 160 / s.zoom;
+            camera.position.z = 90 / s.zoom;
             camera.updateProjectionMatrix();
             renderer.render(scene, camera);
           };

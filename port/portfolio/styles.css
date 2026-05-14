@@ -465,7 +465,7 @@ section.block {
   margin: 28px 0;
   position: relative;
   display: flex; align-items: center; justify-content: center;
-  min-height: 220px;
+  min-height: 380px;
   z-index: 1;
 }
 .project .name {
@@ -1317,7 +1317,7 @@ section.block {
 /* === STL 3D VIEWER ================================================= */
 .stl-viewer {
   width: 100%; height: 100%;
-  min-height: 220px;
+  min-height: 380px;
   position: relative;
   display: flex; align-items: center; justify-content: center;
   border-radius: 8px;
