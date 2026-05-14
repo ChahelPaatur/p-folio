@@ -3,3 +3,8 @@ stls/
 port/portfolio/models/atlas.stl
 port/portfolio/models/sauron.stl
 port/portfolio/models/drone.stl
+port/portfolio/models/atlas-web.stl
+port/portfolio/models/sauron-web.stl
+port/portfolio/models/drone-web.stl
+*.glb
+!port/portfolio/models/*.glb

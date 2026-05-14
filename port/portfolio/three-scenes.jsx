@@ -1,4 +1,4 @@
-/* === 3D Scenes — STL viewers with CSS 3D fallback =================== */
+/* === 3D Scenes — GLB model viewers with CSS 3D fallback ============= */
 var _r3 = React;
 
 /* --- Detect WebGL support -------------------------------------------- */
@@ -9,75 +9,22 @@ var _webglOk = (function () {
   } catch (e) { return false; }
 })();
 
-/* --- Load Three.js on demand ----------------------------------------- */
-var _threePromise = null;
+/* --- Wait for Three.js + GLTFLoader (loaded via ES module in HTML) --- */
 function loadThree() {
-  if (window.THREE) return Promise.resolve(window.THREE);
-  if (_threePromise) return _threePromise;
-  _threePromise = new Promise(function (resolve, reject) {
-    var s = document.createElement("script");
-    s.src = "https://unpkg.com/three@0.158.0/build/three.min.js";
-    s.onload = function () { resolve(window.THREE); };
-    s.onerror = function () { reject(new Error("Failed to load 3D engine")); };
-    document.head.appendChild(s);
-  });
-  return _threePromise;
-}
-
-/* --- Binary STL parser ----------------------------------------------- */
-function parseSTLBinary(buffer) {
-  var dv = new DataView(buffer);
-  var numTri = dv.getUint32(80, true);
-  var positions = new Float32Array(numTri * 9);
-  var normals = new Float32Array(numTri * 9);
-  var off = 84;
-  for (var i = 0; i < numTri; i++) {
-    var nx = dv.getFloat32(off, true);
-    var ny = dv.getFloat32(off + 4, true);
-    var nz = dv.getFloat32(off + 8, true);
-    off += 12;
-    for (var v = 0; v < 3; v++) {
-      var idx = i * 9 + v * 3;
-      positions[idx]     = dv.getFloat32(off, true);
-      positions[idx + 1] = dv.getFloat32(off + 4, true);
-      positions[idx + 2] = dv.getFloat32(off + 8, true);
-      normals[idx]     = nx;
-      normals[idx + 1] = ny;
-      normals[idx + 2] = nz;
-      off += 12;
-    }
-    off += 2;
-  }
-  return { positions: positions, normals: normals };
-}
-
-/* --- Fetch with progress --------------------------------------------- */
-function fetchWithProgress(url, onProgress) {
-  return fetch(url).then(function (res) {
-    if (!res.ok) throw new Error("Model not found (" + res.status + ")");
-    var total = parseInt(res.headers.get("content-length") || "0", 10);
-    var reader = res.body.getReader();
-    var chunks = [];
-    var received = 0;
-    function pump() {
-      return reader.read().then(function (result) {
-        if (result.done) return new Blob(chunks).arrayBuffer();
-        chunks.push(result.value);
-        received += result.value.length;
-        if (total > 0) onProgress(Math.round((received / total) * 100));
-        return pump();
-      });
-    }
-    return pump();
+  if (window.THREE && window.THREE.GLTFLoader) return Promise.resolve(window.THREE);
+  return new Promise(function (resolve) {
+    window.addEventListener("three-ready", function () { resolve(window.THREE); }, { once: true });
+    /* safety timeout — if module already fired before this listener */
+    setTimeout(function () {
+      if (window.THREE && window.THREE.GLTFLoader) resolve(window.THREE);
+    }, 100);
   });
 }
 
-/* --- WebGL STL Viewer component -------------------------------------- */
-function STLViewer(props) {
+/* --- GLB Model Viewer component -------------------------------------- */
+function ModelViewer(props) {
   var url = props.url;
   var label = props.label;
-  var color = props.color || 0x5bb1e8;
-  var emissive = props.emissive || 0x112233;
   var autoSpeed = props.autoSpeed || 0.004;
 
   var containerRef = _r3.useRef(null);
@@ -98,127 +45,150 @@ function STLViewer(props) {
       .then(function (T) {
         if (cancelled) return;
         var scene = new T.Scene();
-        var w = el.clientWidth || 300;
-        var h = el.clientHeight || 260;
-        var camera = new T.PerspectiveCamera(40, w / h, 0.1, 10000);
+        var w = el.clientWidth || 400;
+        var h = el.clientHeight || 380;
+        var camera = new T.PerspectiveCamera(35, w / h, 0.01, 1000);
         var renderer = new T.WebGLRenderer({ antialias: true, alpha: true });
         renderer.setSize(w, h);
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
         renderer.setClearColor(0x000000, 0);
+        renderer.outputColorSpace = T.SRGBColorSpace;
+        renderer.toneMapping = T.ACESFilmicToneMapping;
+        renderer.toneMappingExposure = 1.4;
         el.appendChild(renderer.domElement);
 
-        scene.add(new T.AmbientLight(0xffffff, 0.7));
-        var key = new T.DirectionalLight(0xffffff, 1.4);
+        /* lighting */
+        scene.add(new T.AmbientLight(0xffffff, 1.2));
+        var key = new T.DirectionalLight(0xffffff, 1.8);
         key.position.set(5, 10, 7); scene.add(key);
-        var fill = new T.DirectionalLight(0x8899cc, 0.6);
+        var fill = new T.DirectionalLight(0x8899cc, 0.8);
         fill.position.set(-6, -3, -5); scene.add(fill);
-        var rim = new T.DirectionalLight(0xaabbff, 0.8);
+        var rim = new T.DirectionalLight(0xaabbff, 1.0);
         rim.position.set(0, 5, -10); scene.add(rim);
-        var top = new T.DirectionalLight(0xffffff, 0.5);
+        var top = new T.DirectionalLight(0xffffff, 0.6);
         top.position.set(0, 12, 0); scene.add(top);
+        var bottom = new T.DirectionalLight(0x445566, 0.4);
+        bottom.position.set(0, -8, 3); scene.add(bottom);
 
+        /* interaction state */
         var s = stateRef.current;
-        s.drag = false; s.rotX = -0.2; s.rotY = 0;
-        s.lx = 0; s.ly = 0; s.zoom = 1; s.mesh = null;
+        s.drag = false; s.rotX = 0; s.rotY = 0;
+        s.lx = 0; s.ly = 0; s.zoom = 1; s.pivot = null;
 
-        return fetchWithProgress(url, function (pct) {
-          if (!cancelled) setProgress(pct);
-        }).then(function (buf) {
-          if (cancelled) return;
-          var parsed = parseSTLBinary(buf);
-          var geo = new T.BufferGeometry();
-          geo.setAttribute("position", new T.BufferAttribute(parsed.positions, 3));
-          geo.setAttribute("normal", new T.BufferAttribute(parsed.normals, 3));
-          geo.computeBoundingBox();
-          geo.computeBoundingSphere();
+        /* load GLB */
+        var loader = new T.GLTFLoader();
+        loader.load(
+          url,
+          function (gltf) {
+            if (cancelled) return;
+            var model = gltf.scene;
 
-          var mat = new T.MeshPhongMaterial({
-            color: color, emissive: emissive, emissiveIntensity: 0.25,
-            specular: 0x999999, shininess: 90,
-            reflectivity: 0.8,
-          });
-          var mesh = new T.Mesh(geo, mat);
-          var box = geo.boundingBox;
-          var center = new T.Vector3(); box.getCenter(center);
-          mesh.position.sub(center);
-          var size = new T.Vector3(); box.getSize(size);
-          mesh.scale.setScalar(200 / Math.max(size.x, size.y, size.z));
+            /* compute full bounding box, center model perfectly */
+            var box = new T.Box3().setFromObject(model);
+            var center = new T.Vector3();
+            box.getCenter(center);
+            model.position.sub(center);
 
-          scene.add(mesh);
-          camera.position.set(0, 15, 90);
-          camera.lookAt(0, 0, 0);
-          s.mesh = mesh;
-          if (!cancelled) setStatus("ready");
+            /* scale to fit view */
+            var size = new T.Vector3();
+            box.getSize(size);
+            var maxDim = Math.max(size.x, size.y, size.z);
+            var scaleFactor = 2.2 / maxDim;
+            model.scale.setScalar(scaleFactor);
 
-          var cvs = renderer.domElement;
-          cvs.style.cursor = "grab";
-          var onDown = function (e) { s.drag = true; s.lx = e.clientX; s.ly = e.clientY; cvs.style.cursor = "grabbing"; };
-          var onMove = function (e) {
-            if (!s.drag) return;
-            s.rotY += (e.clientX - s.lx) * 0.008;
-            s.rotX += (e.clientY - s.ly) * 0.008;
-            s.rotX = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, s.rotX));
-            s.lx = e.clientX; s.ly = e.clientY;
-          };
-          var onUp = function () { s.drag = false; cvs.style.cursor = "grab"; };
-          var onWheel = function (e) { e.preventDefault(); s.zoom = Math.max(0.4, Math.min(3, s.zoom * (1 - e.deltaY * 0.001))); };
-          var onTS = function (e) { if (e.touches.length === 1) { s.drag = true; s.lx = e.touches[0].clientX; s.ly = e.touches[0].clientY; } };
-          var onTM = function (e) {
-            if (!s.drag || e.touches.length !== 1) return; e.preventDefault();
-            s.rotY += (e.touches[0].clientX - s.lx) * 0.008;
-            s.rotX += (e.touches[0].clientY - s.ly) * 0.008;
-            s.rotX = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, s.rotX));
-            s.lx = e.touches[0].clientX; s.ly = e.touches[0].clientY;
-          };
-          var onTE = function () { s.drag = false; };
+            /* create a pivot group for rotation */
+            var pivot = new T.Group();
+            pivot.add(model);
+            scene.add(pivot);
+            s.pivot = pivot;
 
-          cvs.addEventListener("mousedown", onDown);
-          window.addEventListener("mousemove", onMove);
-          window.addEventListener("mouseup", onUp);
-          cvs.addEventListener("wheel", onWheel, { passive: false });
-          cvs.addEventListener("touchstart", onTS, { passive: true });
-          cvs.addEventListener("touchmove", onTM, { passive: false });
-          cvs.addEventListener("touchend", onTE);
+            /* position camera to frame the model */
+            camera.position.set(0, 0.3, 3.5);
+            camera.lookAt(0, 0, 0);
 
-          var raf;
-          var animate = function () {
-            raf = requestAnimationFrame(animate);
-            if (s.mesh) {
-              if (!s.drag) s.rotY += autoSpeed;
-              s.mesh.rotation.x = s.rotX;
-              s.mesh.rotation.y = s.rotY;
+            if (!cancelled) setStatus("ready");
+          },
+          function (xhr) {
+            if (xhr.total > 0 && !cancelled) {
+              setProgress(Math.round((xhr.loaded / xhr.total) * 100));
             }
-            camera.position.z = 90 / s.zoom;
-            camera.updateProjectionMatrix();
-            renderer.render(scene, camera);
-          };
-          animate();
+          },
+          function (err) {
+            if (!cancelled) { setErrMsg("Failed to load model"); setStatus("error"); }
+          }
+        );
 
-          var ro = new ResizeObserver(function () {
-            var rw = el.clientWidth, rh = el.clientHeight;
-            if (rw === 0 || rh === 0) return;
-            camera.aspect = rw / rh;
-            camera.updateProjectionMatrix();
-            renderer.setSize(rw, rh);
-          });
-          ro.observe(el);
+        /* mouse interaction */
+        var cvs = renderer.domElement;
+        cvs.style.cursor = "grab";
+        var onDown = function (e) { s.drag = true; s.lx = e.clientX; s.ly = e.clientY; cvs.style.cursor = "grabbing"; };
+        var onMove = function (e) {
+          if (!s.drag) return;
+          s.rotY += (e.clientX - s.lx) * 0.008;
+          s.rotX += (e.clientY - s.ly) * 0.008;
+          s.rotX = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, s.rotX));
+          s.lx = e.clientX; s.ly = e.clientY;
+        };
+        var onUp = function () { s.drag = false; cvs.style.cursor = "grab"; };
+        var onWheel = function (e) { e.preventDefault(); s.zoom = Math.max(0.4, Math.min(3, s.zoom * (1 - e.deltaY * 0.001))); };
+        var onTS = function (e) { if (e.touches.length === 1) { s.drag = true; s.lx = e.touches[0].clientX; s.ly = e.touches[0].clientY; } };
+        var onTM = function (e) {
+          if (!s.drag || e.touches.length !== 1) return; e.preventDefault();
+          s.rotY += (e.touches[0].clientX - s.lx) * 0.008;
+          s.rotX += (e.touches[0].clientY - s.ly) * 0.008;
+          s.rotX = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, s.rotX));
+          s.lx = e.touches[0].clientX; s.ly = e.touches[0].clientY;
+        };
+        var onTE = function () { s.drag = false; };
 
-          s._cleanup = function () {
-            cancelAnimationFrame(raf); ro.disconnect();
-            cvs.removeEventListener("mousedown", onDown);
-            window.removeEventListener("mousemove", onMove);
-            window.removeEventListener("mouseup", onUp);
-            cvs.removeEventListener("wheel", onWheel);
-            cvs.removeEventListener("touchstart", onTS);
-            cvs.removeEventListener("touchmove", onTM);
-            cvs.removeEventListener("touchend", onTE);
-            renderer.dispose();
-            if (el.contains(cvs)) el.removeChild(cvs);
-          };
+        cvs.addEventListener("mousedown", onDown);
+        window.addEventListener("mousemove", onMove);
+        window.addEventListener("mouseup", onUp);
+        cvs.addEventListener("wheel", onWheel, { passive: false });
+        cvs.addEventListener("touchstart", onTS, { passive: true });
+        cvs.addEventListener("touchmove", onTM, { passive: false });
+        cvs.addEventListener("touchend", onTE);
+
+        /* render loop */
+        var raf;
+        var animate = function () {
+          raf = requestAnimationFrame(animate);
+          if (s.pivot) {
+            if (!s.drag) s.rotY += autoSpeed;
+            s.pivot.rotation.x = s.rotX;
+            s.pivot.rotation.y = s.rotY;
+          }
+          camera.position.z = 3.5 / s.zoom;
+          camera.updateProjectionMatrix();
+          renderer.render(scene, camera);
+        };
+        animate();
+
+        /* resize */
+        var ro = new ResizeObserver(function () {
+          var rw = el.clientWidth, rh = el.clientHeight;
+          if (rw === 0 || rh === 0) return;
+          camera.aspect = rw / rh;
+          camera.updateProjectionMatrix();
+          renderer.setSize(rw, rh);
         });
+        ro.observe(el);
+
+        s._cleanup = function () {
+          cancelAnimationFrame(raf); ro.disconnect();
+          cvs.removeEventListener("mousedown", onDown);
+          window.removeEventListener("mousemove", onMove);
+          window.removeEventListener("mouseup", onUp);
+          cvs.removeEventListener("wheel", onWheel);
+          cvs.removeEventListener("touchstart", onTS);
+          cvs.removeEventListener("touchmove", onTM);
+          cvs.removeEventListener("touchend", onTE);
+          renderer.dispose();
+          if (el.contains(cvs)) el.removeChild(cvs);
+        };
       })
       .catch(function (e) {
-        if (!cancelled) { setErrMsg(e.message); setStatus("error"); }
+        if (!cancelled) { setErrMsg(e.message || "3D engine failed"); setStatus("error"); }
       });
 
     return function () {
@@ -245,8 +215,6 @@ function STLViewer(props) {
 /* =====================================================================
    CSS 3D FALLBACK SCENES (used when WebGL is unavailable)
    ===================================================================== */
-
-/* --- CSS Drone fallback ---------------------------------------------- */
 function DroneFallback() {
   return (
     <div className="drone3d">
@@ -265,8 +233,6 @@ function DroneFallback() {
     </div>
   );
 }
-
-/* --- CSS Sauron fallback (RF mesh viz) ------------------------------- */
 function SauronFallback() {
   var nodes = [{ x: 14, y: 30 }, { x: 35, y: 60 }, { x: 65, y: 25 }, { x: 86, y: 70 }, { x: 50, y: 85 }];
   var target = { x: 50, y: 50 };
@@ -289,8 +255,6 @@ function SauronFallback() {
     </div>
   );
 }
-
-/* --- CSS Humanoid fallback ------------------------------------------- */
 function HumanoidFallback() {
   return (
     <div className="humanoid3d">
@@ -349,18 +313,17 @@ function HumanoidFallback() {
 /* =====================================================================
    PUBLIC SCENE COMPONENTS — auto-select WebGL or CSS fallback
    ===================================================================== */
-
 function DroneScene() {
   if (!_webglOk) return <DroneFallback />;
-  return <STLViewer url="models/drone-web.stl" label="DRONE / FPV" color={0xe08030} emissive={0x331800} />;
+  return <ModelViewer url="models/drone.glb" label="DRONE / FPV" />;
 }
 function SauronScene() {
   if (!_webglOk) return <SauronFallback />;
-  return <STLViewer url="models/sauron-web.stl" label="SAURON / RF" color={0xcc3333} emissive={0x330808} />;
+  return <ModelViewer url="models/sauron.glb" label="SAURON / RF" />;
 }
 function HumanoidScene() {
   if (!_webglOk) return <HumanoidFallback />;
-  return <STLViewer url="models/atlas-web.stl" label="ATLAS-01 / IDLE" color={0x5bb1e8} emissive={0x0a1a2a} />;
+  return <ModelViewer url="models/atlas.glb" label="ATLAS-01 / IDLE" />;
 }
 
 /* === AETHER: SVG wireframe icosahedron + ASCII ======================= */
@@ -371,12 +334,6 @@ function AetherScene() {
     [0, -1, phi], [0, 1, phi], [0, -1, -phi], [0, 1, -phi],
     [phi, 0, -1], [phi, 0, 1], [-phi, 0, -1], [-phi, 0, 1]
   ];
-  var edges = [
-    [0, 1], [0, 5], [0, 7], [0, 10], [0, 11], [1, 5], [1, 7], [1, 8], [1, 9],
-    [2, 3], [2, 4], [2, 6], [2, 10], [2, 11], [3, 4], [3, 6], [3, 8], [3, 9],
-    [4, 5], [4, 9], [4, 11], [5, 9], [5, 11], [6, 7], [6, 8], [6, 10],
-    [7, 8], [7, 10], [8, 9], [10, 11]
-  ];
   var _ph = _r3.useState(0);
   var phase = _ph[0], setPhase = _ph[1];
   _r3.useEffect(function () {
@@ -385,16 +342,6 @@ function AetherScene() {
     raf = requestAnimationFrame(loop);
     return function () { cancelAnimationFrame(raf); };
   }, []);
-  var project = function (p, ax, ay) {
-    var ca = Math.cos(ax), sa = Math.sin(ax), cb = Math.cos(ay), sb = Math.sin(ay);
-    var x = p[0], y = p[1], z = p[2];
-    var x1 = x * cb + z * sb, z1 = -x * sb + z * cb;
-    var y1 = y * ca - z1 * sa, z2 = y * sa + z1 * ca;
-    var f = 4 / (4 - z2);
-    return { x: x1 * f, y: y1 * f, z: z2, depth: (z2 + 2) / 4 };
-  };
-  var ax = phase * 0.4, ay = phase * 0.6;
-  var pts = raw.map(function (p) { return project(p, ax, ay); });
   return (
     <div className="aether3d">
       <div className="aether-mark mono" style={{ color: "rgb(255, 127, 0)" }}>AETHER</div>
