@@ -148,10 +148,8 @@ function Project({ num, name, sub, desc, tags, status, span, theme, badge, link,
     ref.current.style.setProperty("--mx", (e.clientX - r.left) / r.width * 100 + "%");
     ref.current.style.setProperty("--my", (e.clientY - r.top) / r.height * 100 + "%");
   };
-  const Wrap = link ? "a" : "article";
-  const wrapProps = link ? { href: link, target: "_blank", rel: "noreferrer" } : {};
   return (
-    <Wrap ref={ref} className={`project ${span} reveal ${theme ? "theme-" + theme : ""}`} onMouseMove={onMove} {...wrapProps}>
+    <article ref={ref} className={`project ${span} reveal ${theme ? "theme-" + theme : ""}`} onMouseMove={onMove}>
       {cornerLogos
         ? <div className="corner-logos">
             {cornerLogos.map((c, i) =>
@@ -169,11 +167,13 @@ function Project({ num, name, sub, desc, tags, status, span, theme, badge, link,
             </div>
           </div>}
       <div className="visual">{children}</div>
-      <div className="name">{name}</div>
+      {link
+        ? <a className="name project-link" href={link} target="_blank" rel="noreferrer">{name} <window.ArrowGlyph size={14} /></a>
+        : <div className="name">{name}</div>}
       <div className="sub mono">{sub}</div>
       <p className="desc">{desc}</p>
       <div className="tags">{tags.map((t) => <window.TagChip key={t}>{t}</window.TagChip>)}</div>
-    </Wrap>
+    </article>
   );
 }
 

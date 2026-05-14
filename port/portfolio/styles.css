@@ -475,6 +475,17 @@ section.block {
   font-weight: 500;
   position: relative; z-index: 1;
 }
+a.project-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+  color: inherit;
+  transition: color 0.2s;
+}
+a.project-link:hover {
+  color: var(--accent);
+}
 .project .sub {
   font-family: "Geist Mono", monospace;
   font-size: 11px;
