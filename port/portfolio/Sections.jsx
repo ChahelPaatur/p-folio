@@ -51,8 +51,8 @@ function Portrait() {
         <img src="assets/portrait-school.jpg" className="portrait-img" alt="Chahel Paatur portrait" />
         <div className="portrait-veil"></div>
         <window.CornerBrackets />
-        <span className="portrait-tag t1 mono">OPERATOR · 06</span>
-        <span className="portrait-tag t2 mono">LIVE</span>
+        <span className="portrait-tag t1 mono">Computer Engineer</span>
+
       </div>
     </div>
   );
@@ -152,20 +152,20 @@ function Project({ num, name, sub, desc, tags, status, span, theme, badge, link,
     <article ref={ref} className={`project ${span} reveal ${theme ? "theme-" + theme : ""}`} onMouseMove={onMove}>
       {cornerLogos
         ? <div className="corner-logos">
-            {cornerLogos.map((c, i) =>
-              <a key={i} href={c.href} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()} className="corner-logo">
-                <img src={c.src} alt={c.alt} />
-                {c.label && <span className="mono">{c.label}</span>}
-              </a>
-            )}
-          </div>
+          {cornerLogos.map((c, i) =>
+            <a key={i} href={c.href} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()} className="corner-logo">
+              <img src={c.src} alt={c.alt} />
+              {c.label && <span className="mono">{c.label}</span>}
+            </a>
+          )}
+        </div>
         : <div className="row">
-            <span className="num">{num}</span>
-            <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-              {badge}
-              {status && <window.StatusPill kind={status.kind}>{status.label}</window.StatusPill>}
-            </div>
-          </div>}
+          <span className="num">{num}</span>
+          <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+            {badge}
+            {status && <window.StatusPill kind={status.kind}>{status.label}</window.StatusPill>}
+          </div>
+        </div>}
       <div className="visual">{children}</div>
       {link
         ? <a className="name project-link" href={link} target="_blank" rel="noreferrer">{name} <window.ArrowGlyph size={14} /></a>
@@ -428,9 +428,9 @@ function HireMe() {
 /* === Education ===================================================== */
 function Education() {
   const schools = [
-    { logo: "assets/logo-kimball.jpg", tag: "Current · 12th", name: "John C. Kimball High School", loc: "Tracy, CA", years: "2024 — 2027 · GPA 3.83 / 4.40w", crestClass: "kimball" },
-    { logo: "assets/logo-paw-washington.png", tag: "Prior coursework", name: "Washington High School", loc: "Fremont, CA", years: "2023 — 2024", crestClass: "washington" },
-    { logo: "assets/logo-uw.png", tag: "Target · Undergrad", name: "University of Washington", loc: "Seattle, WA", years: "Electrical & Computer Engineering · Applying 2027", crestClass: "uw" }
+    { logo: "assets/logo-kimball.jpg", tag: "Current · 12th", name: "John C. Kimball High School", loc: "Tracy, CA", years: "2024 — 2026· GPA 3.83 / 4.40w.  #31/373", crestClass: "kimball" },
+    { logo: "assets/logo-paw-washington.png", tag: "Prior coursework", name: "Washington High School", loc: "Fremont, CA", years: "2022 — 2024", crestClass: "washington" },
+    { logo: "assets/logo-uw.png", tag: "Target · Undergrad", name: "University of Washington", loc: "Seattle, WA", years: "Electrical & Computer Engineering · Class of 2030", crestClass: "uw" }
   ];
   return (
     <section className="block" id="education">
