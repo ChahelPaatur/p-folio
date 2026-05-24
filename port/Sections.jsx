@@ -273,7 +273,7 @@ function Work() {
       <window.BlockHeader tag="SELECTED WORK / 06" title={<>Systems that move, sense, <em>and decide.</em></>} />
       <div className="projects">
         <Project num="01 / AETHER" span="span-7" status={{ kind: "live", label: "Active" }}
-        link="#" name="AETHER" sub="Adaptive Embodied Task Hierarchy"
+        link="#" name="AETHER" sub="Adaptive Embodied Task Hierarchy for Executable Robotics"
         desc="A physical-AI runtime that translates natural language into executable robotic actions across drones, rovers and humanoids. Full pipeline — perception, planning, execution, feedback, adaptation."
         tags={["VLA", "PPO", "PyTorch", "Cross-platform"]}><window.AetherScene /></Project>
         <Project num="02 / FLIGHT" span="span-5" theme="orange" status={{ kind: "live", label: "In flight" }}
