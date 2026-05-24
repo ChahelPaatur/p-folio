@@ -387,7 +387,7 @@ function Education() {
   const schools = [
   { logo: "assets/logo-kimball.jpg", tag: "Current · 11th", name: "John C. Kimball High School", loc: "Tracy, CA", years: "2024 — 2027 · GPA 3.83 / 4.40w", crestClass: "kimball" },
   { logo: "assets/logo-paw-washington.png", tag: "Prior coursework", name: "Washington High School", loc: "Fremont, CA", years: "2023 — 2024", crestClass: "washington" },
-  { logo: "assets/logo-UIUC.png", tag: "Target · Undergrad", name: "University of Illinois at Urbana-Champaign", loc: "Champaign, IL", years: "Aerospace Engineering + ECE", crestClass: "uiuc" }];
+  { logo: "assets/logo-uiuc.jpeg", tag: "Target · Undergrad", name: "University of Illinois at Urbana-Champaign", loc: "Champaign, IL", years: "Aerospace Engineering + ECE", crestClass: "uiuc" }];
 
   return (
     <section className="block" id="education">
