@@ -1,0 +1,13 @@
+# robots.txt — Chahel Paatur Portfolio
+# https://chahel.tech
+
+User-agent: *
+Allow: /
+
+Disallow: /api/*
+Disallow: /admin/*
+Disallow: /_next/*
+Disallow: /.vercel/*
+
+# Sitemap
+Sitemap: https://chahel.tech/sitemap.xml
