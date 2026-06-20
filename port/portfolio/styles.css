@@ -1067,86 +1067,6 @@ a.project-link:hover {
 }
 .block-head.in::after { transform: scaleX(1); }
 
-/* === RESPONSIVE (rough) ============================================ */
-@media (max-width: 1080px) {
-  :root { --pad-x: 32px; }
-  .hero { grid-template-columns: 1fr; }
-  .about-grid, .contact-grid { grid-template-columns: 1fr; gap: 40px; }
-  .projects { grid-template-columns: 1fr; }
-  .project[class*="span-"] { grid-column: span 12; }
-  .patents { grid-template-columns: 1fr; }
-  .research-row { grid-template-columns: 60px 1fr 60px; }
-  .research-row .desc, .research-row .venue { display: none; }
-  .hire { grid-template-columns: 1fr; }
-  .schools { grid-template-columns: 1fr; }
-  .certs { grid-template-columns: 1fr 1fr; }
-  .leadership-grid { grid-template-columns: 1fr; }
-}
-
-/* === PHONE ========================================================= */
-@media (max-width: 640px) {
-  :root { --pad-x: 20px; }
-
-  /* nav — the 6-link row overflows; drop it, keep mark + CTA */
-  .nav { padding: 13px var(--pad-x); }
-  .nav-links { display: none; }
-  .nav-mark { gap: 8px; min-width: 0; }
-  .nav-mark .mono { font-size: 10.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .nav-cta { flex-shrink: 0; }
-
-  /* hero */
-  .hero { padding: 100px var(--pad-x) 44px; min-height: auto; }
-  .hero-meta-top { display: none; }
-  .hero-left { padding-top: 6px; }
-  .hero-name { font-size: clamp(52px, 15vw, 96px); }
-  .hero-name .ln.indent { padding-left: 0.4em; }
-  .hero-tag { margin-top: 26px; }
-  .hero-tag p { font-size: 14.5px; }
-  .role-strip { flex-wrap: wrap; gap: 10px; }
-
-  /* generic section spacing */
-  section.block { padding-top: 72px; padding-bottom: 72px; }
-  .block-head { grid-template-columns: 1fr; gap: 16px; margin-bottom: 40px; }
-  .block-head .block-title { font-size: clamp(32px, 9vw, 48px); }
-
-  /* marquee */
-  .marquee { padding: 20px 0; }
-  .marquee-track, .marquee-track span { gap: 32px; }
-  .marquee-item { font-size: clamp(24px, 7vw, 34px); gap: 32px; }
-
-  /* projects */
-  .project { padding: 22px; min-height: 400px; }
-  .project .visual { min-height: 280px; margin: 22px 0; }
-  .project .name { font-size: clamp(26px, 8vw, 36px); }
-
-  /* about */
-  .about-grid { gap: 32px; }
-  .about-meta { grid-template-columns: 1fr 1fr; }
-
-  /* research rows — collapse to year / title / arrow */
-  .research-row { grid-template-columns: 40px 1fr 24px; gap: 12px; padding: 20px 2px; }
-  .research-row:hover { padding-left: 2px; }
-  .research-row .ttl { font-size: 16px; }
-
-  /* hire */
-  .hire { padding: 76px var(--pad-x); gap: 40px; }
-  .hire-title { font-size: clamp(48px, 13vw, 96px); }
-  .hire-sub { font-size: 16px; }
-  .hire-stat { min-height: 150px; padding: 18px; }
-  .hire-stat .stat-icon { width: 44px; height: 44px; }
-
-  /* certs single column */
-  .certs { grid-template-columns: 1fr; }
-
-  /* contact */
-  .contact { padding: 80px var(--pad-x) 60px; }
-  .contact-grid { gap: 36px; }
-  .contact-title { font-size: clamp(48px, 14vw, 96px); }
-  .contact-mail { font-size: 15px; gap: 8px; max-width: 100%; word-break: break-all; }
-
-  /* footer — stack so the three groups don't overflow */
-  .footer { flex-direction: column; gap: 14px; text-align: center; padding: 26px var(--pad-x); }
-}
 
 /* === 3D-FEEL SCENES (CSS 3D + SVG) ================================= */
 
@@ -1915,3 +1835,96 @@ a.project-link:hover {
   transition: filter .2s;
 }
 .social-row a:hover img { filter: none; }
+
+/* === RESPONSIVE OVERRIDES — kept last so they win the cascade === */
+@media (max-width: 1080px) {
+  :root { --pad-x: 32px; }
+  .hero { grid-template-columns: 1fr; }
+  .about-grid, .contact-grid { grid-template-columns: 1fr; gap: 40px; }
+  .projects { grid-template-columns: 1fr; }
+  .project[class*="span-"] { grid-column: span 12; }
+  .patents { grid-template-columns: 1fr; }
+  .research-row { grid-template-columns: 60px 1fr 60px; }
+  .research-row .desc, .research-row .venue { display: none; }
+  .hire { grid-template-columns: 1fr; }
+  .schools { grid-template-columns: 1fr; }
+  .certs { grid-template-columns: 1fr 1fr; }
+  .leadership-grid { grid-template-columns: 1fr; }
+}
+
+/* === PHONE ========================================================= */
+@media (max-width: 640px) {
+  :root { --pad-x: 20px; }
+
+  /* nav — the 6-link row overflows; drop it, keep mark + CTA */
+  .nav { padding: 13px var(--pad-x); }
+  .nav-links { display: none; }
+  .nav-mark { gap: 8px; min-width: 0; }
+  .nav-mark .mono { font-size: 10.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .nav-cta { flex-shrink: 0; }
+
+  /* hero */
+  .hero { padding: 100px var(--pad-x) 44px; min-height: auto; }
+  .hero-meta-top { display: none; }
+  .hero-left { padding-top: 6px; }
+  .hero-name { font-size: clamp(52px, 15vw, 96px); }
+  .hero-name .ln.indent { padding-left: 0.4em; }
+  .hero-tag { margin-top: 26px; }
+  .hero-tag p { font-size: 14.5px; }
+  .role-strip { flex-wrap: wrap; gap: 10px; }
+
+  /* generic section spacing */
+  section.block { padding-top: 72px; padding-bottom: 72px; }
+  .block-head { grid-template-columns: 1fr; gap: 16px; margin-bottom: 40px; }
+  .block-head .block-title { font-size: clamp(32px, 9vw, 48px); }
+
+  /* marquee */
+  .marquee { padding: 20px 0; }
+  .marquee-track, .marquee-track span { gap: 32px; }
+  .marquee-item { font-size: clamp(24px, 7vw, 34px); gap: 32px; }
+
+  /* projects */
+  .project { padding: 22px; min-height: 400px; }
+  .project .visual { min-height: 280px; margin: 22px 0; }
+  .project .name { font-size: clamp(26px, 8vw, 36px); }
+  /* header row: num + badge + status pill must wrap, not clip off the edge */
+  .project .row { flex-wrap: wrap; gap: 10px; }
+  .project .desc { max-width: 100%; }
+  .corner-logos { flex-wrap: wrap; gap: 8px; }
+
+  /* certifications: stack the foot so wide crests + skill chips don't clip */
+  .cert { min-height: 0; padding: 20px; }
+  .cert-foot { flex-direction: column; align-items: flex-start; gap: 14px; }
+  .cert .skills { max-width: 100%; }
+  .cert .logo.logo-wide { width: 130px; height: 46px; }
+  .cert .logo.logo-harvard { width: 96px; height: 46px; }
+  .cert .logo.logo-circle { width: 64px; height: 64px; }
+
+  /* about */
+  .about-grid { gap: 32px; }
+  .about-meta { grid-template-columns: 1fr 1fr; }
+
+  /* research rows — collapse to year / title / arrow */
+  .research-row { grid-template-columns: 40px 1fr 24px; gap: 12px; padding: 20px 2px; }
+  .research-row:hover { padding-left: 2px; }
+  .research-row .ttl { font-size: 16px; }
+
+  /* hire */
+  .hire { padding: 76px var(--pad-x); gap: 40px; }
+  .hire-title { font-size: clamp(48px, 13vw, 96px); }
+  .hire-sub { font-size: 16px; }
+  .hire-stat { min-height: 150px; padding: 18px; }
+  .hire-stat .stat-icon { width: 44px; height: 44px; }
+
+  /* certs single column */
+  .certs { grid-template-columns: 1fr; }
+
+  /* contact */
+  .contact { padding: 80px var(--pad-x) 60px; }
+  .contact-grid { gap: 36px; }
+  .contact-title { font-size: clamp(48px, 14vw, 96px); }
+  .contact-mail { font-size: 15px; gap: 8px; max-width: 100%; word-break: break-all; }
+
+  /* footer — stack so the three groups don't overflow */
+  .footer { flex-direction: column; gap: 14px; text-align: center; padding: 26px var(--pad-x); }
+}
