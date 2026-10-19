@@ -475,7 +475,9 @@ function Hero() {
       clearTimeout(rto);
       rto = setTimeout(() => {
         const W = cvs.clientWidth, H = cvs.clientHeight;
-        if (W === lastW && Math.abs(H - lastH) < 140) return;
+        // Phones: ignore the address bar sliding in/out. Desktop: redraw on any change.
+        const tolerance = window.matchMedia("(pointer: coarse)").matches ? 140 : 0;
+        if (W === lastW && Math.abs(H - lastH) <= tolerance) return;
         lastW = W; lastH = H;
         build();
       }, 120);
