@@ -845,10 +845,19 @@ function Logbook() {
   };
   const leave = () => { st.current.on = false; };
 
-  const group = (code, title, rows) => (
+  const group = (n, code, title, blurb, rows) => (
     <div className="log-group">
-      <div className="log-group-head"><span className="dot">{code}</span><span>{title}</span><span>{String(rows.length).padStart(2, "0")} ENTRIES</span></div>
-      {rows.map((r) => <LogRow key={r.what + r.when} r={r} onEnter={enter} onLeave={leave} />)}
+      <header className="log-group-head">
+        <div className="lg-pin">
+          <span className="lg-n">{n}</span>
+          <h3 className="lg-title">{title}</h3>
+          <p className="lg-blurb">{blurb}</p>
+          <span className="lg-count">{code} · {String(rows.length).padStart(2, "0")} ENTRIES</span>
+        </div>
+      </header>
+      <div className="log-rows">
+        {rows.map((r) => <LogRow key={r.what + r.when} r={r} onEnter={enter} onLeave={leave} />)}
+      </div>
     </div>
   );
 
@@ -858,9 +867,9 @@ function Logbook() {
         <StretchTitle text="Logbook" className="big-title" />
         <p>Schools, certificates, and the people I build with. Hover a line for details.</p>
       </div>
-      {group("EDU", "Education", LOG_EDU)}
-      {group("CRT", "Certifications", LOG_CERT)}
-      {group("NET", "Leadership and network", LOG_NET)}
+      {group("01", "EDU", "Education", "Schools so far, and where I'm aiming next.", LOG_EDU)}
+      {group("02", "CRT", "Certifications", "Courses and programs, newest first.", LOG_CERT)}
+      {group("03", "NET", "Leadership and network", "What I run, what I've won, and who I build with.", LOG_NET)}
       {finePointer && (
         <div className="log-follow" ref={followRef} aria-hidden="true"><img ref={imgRef} alt="" /></div>
       )}
