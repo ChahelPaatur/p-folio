@@ -284,7 +284,7 @@ function TelemetryTape({ items }) {
   );
 }
 
-function useClock(tz = "America/Los_Angeles") {
+function useClock(tz = "America/Chicago") {
   const [t, setT] = usM("");
   ueM(() => {
     const tick = () => {

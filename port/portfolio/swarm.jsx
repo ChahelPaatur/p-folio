@@ -662,7 +662,7 @@ function Hero() {
         <div className="hud hud-tr">
           <div><span className="dot">{units.toLocaleString("en-US")}</span> UNITS LIT</div>
           <div className="hud-link">LINK <i /><i /><i /><i /> OK</div>
-          <div className="hud-dim">{intro || form === 3 ? "37.8199°N 122.4783°W" : "37.7397°N 121.4252°W"}</div>
+          <div className="hud-dim">{intro || form === 3 ? "37.8199°N 122.4783°W" : "40.1164°N 88.2434°W"}</div>
         </div>
 
         <div className="hud hud-bl">

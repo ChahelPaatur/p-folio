@@ -64,7 +64,7 @@ function Nav() {
       </div>
       <div className="nav-tele">
         <span>ALT <b ref={altRef}>00000</b> M</span>
-        <span>{clock} PT</span>
+        <span>{clock} CT</span>
       </div>
       <nav className="nav-links" aria-label="Sections">
         {NAV_LINKS.map((l) => (
@@ -79,7 +79,7 @@ function Nav() {
 
 /* === Telemetry tape ================================================= */
 const TAPE = [
-  { k: "POS", v: "37.7397°N 121.4252°W" },
+  { k: "POS", v: "40.1164°N 88.2434°W" },
   { k: "ALT", v: "052 M AGL" },
   { k: "VBAT", v: "16.4 V" },
   { k: "RSSI", v: "−61 dBm" },
@@ -710,7 +710,7 @@ function Papers() {
           <div className="tex-stamp">arXiv:{ARXIV_ID}v1 [math.PR] 8 Oct 2026</div>
           <h2 className="tex-title">Papers and Patents</h2>
           <p className="tex-author">Chahel Paatur</p>
-          <p className="tex-affil">Tracy, California</p>
+          <p className="tex-affil">University of Illinois Urbana-Champaign</p>
         </header>
 
         <div className="tex-abstract">
@@ -1045,7 +1045,7 @@ function Contact() {
       <div className="rings" aria-hidden="true"><i /><i /><i /><i /></div>
       <div className="contact-top">
         <span>05 / OPEN CHANNEL</span>
-        <span>{clock} PT · TRACY, CA</span>
+        <span>{clock} CT · CHAMPAIGN, IL</span>
       </div>
       <StretchTitle text="Open channel." className="contact-title" wFrom={300} wTo={900} />
       <p className="contact-sub">Internships, lab placements, research collaborations, or just a good robotics problem. I reply fast.</p>
@@ -1061,7 +1061,7 @@ function Contact() {
       </dl>
       <footer className="foot">
         <span>© 2026 Chahel Paatur</span>
-        <span>37.7397°N 121.4252°W</span>
+        <span>40.1164°N 88.2434°W</span>
         <span>END OF TRANSMISSION</span>
         <a href="#top" onClick={rtb} data-lock="RTB">↑ Return to base</a>
       </footer>
