@@ -422,7 +422,7 @@ function Hangar() {
   const secRef = urX(null);
   const trackRef = urX(null);
   const fillRef = urX(null);
-  const [active, setActive] = usX(0);
+  const [active, setActive] = usX(-1);
 
   ueX(() => {
     const sec = secRef.current, track = trackRef.current;
@@ -438,6 +438,7 @@ function Hangar() {
     ro.observe(track);
     window.addEventListener("resize", measure);
     const panels = Array.from(track.querySelectorAll(".panel"));
+    const intro = track.querySelector(".hangar-intro");
     const off = onFrame(() => {
       const r = sec.getBoundingClientRect();
       if (r.bottom < -50 || r.top > window.innerHeight + 50) return;
@@ -445,7 +446,9 @@ function Hangar() {
       if (dist) track.style.transform = `translate3d(${(-p * dist).toFixed(1)}px,0,0)`;
       if (fillRef.current) fillRef.current.style.transform = `scaleX(${p.toFixed(4)})`;
       const vw = window.innerWidth;
-      let best = 0, bestD = 1e9;
+      // -1 while the intro screen is the one in view, so no project is highlighted yet
+      const ir = intro.getBoundingClientRect();
+      let best = -1, bestD = Math.abs((ir.left + ir.width / 2 - vw / 2) / vw);
       panels.forEach((el, i) => {
         const pr = el.getBoundingClientRect();
         const c = (pr.left + pr.width / 2 - vw / 2) / vw;
@@ -458,19 +461,38 @@ function Hangar() {
     return () => { off(); ro.disconnect(); window.removeEventListener("resize", measure); };
   }, []);
 
+  const jumpTo = (i) => {
+    const sec = secRef.current, panel = trackRef.current.querySelectorAll(".panel")[i];
+    const horizontal = window.matchMedia("(min-width: 900px)").matches;
+    const dist = trackRef.current.scrollWidth - window.innerWidth;
+    const y = horizontal
+      ? sec.offsetTop + clamp(panel.offsetLeft + panel.offsetWidth / 2 - window.innerWidth / 2, 0, dist)
+      : panel.getBoundingClientRect().top + window.scrollY - 40;
+    if (frame.lenis) frame.lenis.scrollTo(y, { duration: 1.6 });
+    else window.scrollTo({ top: y, behavior: reduceMotion ? "auto" : "smooth" });
+  };
+
   return (
     <section className="hangar" id="work" ref={secRef} data-tone="dark" data-idx="01" data-name="HANGAR">
       <div className="hangar-pin">
-        <div className="hangar-hud">
-          <span>HANGAR</span>
-          <span className="dot">{String(active + 1).padStart(2, "0")}</span>
-          <span>/ {String(PROJECTS.length).padStart(2, "0")}</span>
-        </div>
         <div className="hangar-track" ref={trackRef}>
           <div className="hangar-intro">
-            <StretchTitle text="Hangar" className="hangar-title" />
-            <p>Six things I've built or am building. The 3D ones are my real CAD files: drag them around.</p>
-            <div className="hangar-go">SCROLL <window.Arrow size={12} /></div>
+            <nav className="hangar-index" aria-label="Projects">
+              {PROJECTS.map((p, i) => (
+                <button key={p.code} onClick={() => jumpTo(i)} data-lock="JUMP">
+                  <span className="hi-n">{p.code}</span>
+                  <span className="hi-name">{p.name}</span>
+                  <i className="hi-lead" />
+                  <span className="hi-tag">{p.tag}</span>
+                </button>
+              ))}
+            </nav>
+            {/* finishes stretching before the section pins, so it never freezes half-done */}
+            <StretchTitle text="Hangar" className="hangar-title" end={0.8} />
+            <div className="hangar-intro-foot">
+              <p>Six things I've built or am building. The 3D ones are my real CAD files: drag them around.</p>
+              <div className="hangar-go">06 PROJECTS · SCROLL <window.Arrow size={12} /></div>
+            </div>
           </div>
           {PROJECTS.map((p) => <Panel key={p.code} p={p} />)}
           <div className="hangar-outro">
@@ -481,7 +503,7 @@ function Hangar() {
             </a>
           </div>
         </div>
-        <div className="hangar-ruler">
+        <div className={"hangar-ruler" + (active < 0 ? " off" : "")}>
           <div className="hangar-fill" ref={fillRef} />
           {PROJECTS.map((p, i) => (
             <span key={p.code} className={i === active ? "on" : ""}>{p.code} {p.name.split(" ")[0]}</span>

@@ -98,14 +98,14 @@ function viewProgress(el, end = 0.25) {
 /* --- StretchTitle ----------------------------------------------------
    Archivo is variable on width (62..125) and weight. Each letter starts
    condensed and thin, then stretches out as the title scrolls into view. */
-function StretchTitle({ text, className = "", as = "h2", from = 62, to = 125, wFrom = 200, wTo = 860 }) {
+function StretchTitle({ text, className = "", as = "h2", from = 62, to = 125, wFrom = 200, wTo = 860, end = 0.35 }) {
   const ref = urM(null);
   const lettersRef = urM(null);
   const last = urM(-1);
   useFrameWhileVisible(ref, () => {
     const el = ref.current;
     if (!lettersRef.current) lettersRef.current = el.querySelectorAll(".l");
-    const p = reduceMotion ? 1 : viewProgress(el, 0.35);
+    const p = reduceMotion ? 1 : viewProgress(el, end);
     if (Math.abs(p - last.current) < 0.002) return;
     last.current = p;
     const spans = lettersRef.current;
