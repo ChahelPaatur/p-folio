@@ -560,7 +560,7 @@ a.bib-main:hover { background-size: 100% 34%; }
 .portrait-tag { position: absolute; left: 10px; bottom: 10px; padding: 4px 6px; background: var(--ink); font-size: var(--m-xs); color: var(--bone-2); }
 .kicker { margin-bottom: 26px; font-size: var(--m-l); color: var(--signal); }
 .about-bio {
-  margin: 0 0 52px; font: 500 clamp(25px, 2.75vw, 66px)/1.17 var(--f-sans);
+  margin: 0 0 52px; font: 500 clamp(23px, min(2.35vw, 4.4vh), 60px)/1.17 var(--f-sans);
   font-variation-settings: "wdth" 104; letter-spacing: -0.012em;
 }
 .about-bio span { transition: opacity 0.15s linear; }
@@ -568,6 +568,8 @@ a.bib-main:hover { background-size: 100% 34%; }
 .about-spec div { padding: 14px 16px 14px 0; border-bottom: 1px solid var(--line); }
 .about-spec dt { margin-bottom: 6px; font-size: var(--m-s); color: var(--bone-3); }
 .about-spec dd { margin: 0; font-size: clamp(16px, 0.88vw, 22px); }
+.about-spec a { display: inline-flex; align-items: center; gap: 6px; color: var(--bone); text-decoration: none; border-bottom: 1px solid var(--signal); padding-bottom: 2px; }
+.about-spec a:hover { color: var(--signal); }
 
 /* === Contact ======================================================== */
 .contact {

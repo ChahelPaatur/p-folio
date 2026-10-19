@@ -776,9 +776,9 @@ function Papers() {
 
 /* === Logbook ======================================================== */
 const LOG_EDU = [
+  { when: "NOW", what: "University of Illinois Urbana-Champaign", where: "Champaign, IL", note: "Aerospace Engineering and Computer Engineering", logo: "assets/logo-uiuc.jpeg" },
   { when: "2024–26", what: "John C. Kimball High School", where: "Tracy, CA", note: "GPA 3.83 / 4.40 weighted · rank 31 of 373", logo: "assets/logo-kimball.jpg" },
-  { when: "2022–24", what: "Washington High School", where: "Fremont, CA", note: "Earlier coursework", logo: "assets/logo-paw-washington.png" },
-  { when: "TARGET", what: "University of Illinois Urbana-Champaign", where: "Champaign, IL", note: "Aerospace Engineering + ECE", logo: "assets/logo-uiuc.jpeg" }
+  { when: "2022–24", what: "Washington High School", where: "Fremont, CA", note: "Earlier coursework", logo: "assets/logo-paw-washington.png" }
 ];
 
 const LOG_CERT = [
@@ -867,7 +867,7 @@ function Logbook() {
         <StretchTitle text="Logbook" className="big-title" />
         <p>Schools, certificates, and the people I build with. Hover a line for details.</p>
       </div>
-      {group("01", "EDU", "Education", "Schools so far, and where I'm aiming next.", LOG_EDU)}
+      {group("01", "EDU", "Education", "Where I study now, and where I came from.", LOG_EDU)}
       {group("02", "CRT", "Certifications", "Courses and programs, newest first.", LOG_CERT)}
       {group("03", "NET", "Leadership and network", "What I run, what I've won, and who I build with.", LOG_NET)}
       {finePointer && (
@@ -1021,14 +1021,14 @@ function About() {
         <DitherPortrait src="assets/portrait-school.jpg" />
         <div className="about-text">
           <div className="kicker">04 / OPERATOR</div>
-          <ScrubWords className="about-bio" text="I'm Chahel. I'm 18 and I live in Tracy, California. Most of my hours go into drones, fault detection for spacecraft, and research on physical AI, with the odd detour into probability theory. Outside the lab I'm International VP of the PII Research Network, which now has 1,000+ student researchers across 20+ schools." />
+          <ScrubWords className="about-bio" text="I'm Chahel. I study Aerospace and Computer Engineering at the University of Illinois Urbana-Champaign, and I'm building Aether Robotics, a company making robots that turn plain-English instructions into action. I'm also a researcher, with papers on spacecraft fault detection, program synthesis and, most recently, probability theory. On the side I'm International VP of the PII Research Network: 1,000+ student researchers across 20+ schools." />
           <dl className="about-spec">
-            <div><dt>BASED</dt><dd>Tracy, CA</dd></div>
-            <div><dt>GPA</dt><dd>3.83 / 4.40w</dd></div>
+            <div><dt>STUDYING</dt><dd>Aerospace + Computer Engineering, UIUC</dd></div>
+            <div><dt>BUILDING</dt><dd><a href="https://aether-robotics.com" target="_blank" rel="noreferrer">Aether Robotics<window.Arrow size={12} /></a></dd></div>
+            <div><dt>RESEARCH</dt><dd>Physical AI, spacecraft FDIR, probability</dd></div>
+            <div><dt>BASED</dt><dd>Champaign, IL · from Tracy, CA</dd></div>
             <div><dt>LANGUAGES</dt><dd>Python, C/C++, Java, TypeScript, SQL</dd></div>
-            <div><dt>HARDWARE</dt><dd>ESP32, Raspberry Pi, SpeedyBee F7</dd></div>
-            <div><dt>TOOLS</dt><dd>PyTorch, Fusion 360</dd></div>
-            <div><dt>NETWORK</dt><dd>PII Research, UC Irvine GATI</dd></div>
+            <div><dt>STACK</dt><dd>PyTorch, ESP32, Raspberry Pi, SpeedyBee F7, Fusion 360</dd></div>
           </dl>
         </div>
       </div>
