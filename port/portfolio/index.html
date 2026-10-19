@@ -2,36 +2,43 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Chahel Paatur · Portfolio</title>
-  <meta name="description" content="Chahel Paatur — physical AI engineer building autonomous drones, spacecraft fault detection systems, and robotic platforms. Open for summer 2026 internships." />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Chahel Paatur</title>
+  <meta name="description" content="Chahel Paatur builds autonomous drones, spacecraft fault detection, and robots that take instructions in plain English. Research in physical AI and probability." />
   <meta name="robots" content="index, follow" />
+  <meta name="theme-color" content="#0b0c0e" />
   <link rel="canonical" href="https://chahel.tech/" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22%3E%3Crect width=%2232%22 height=%2232%22 fill=%22%230b0c0e%22/%3E%3Cg fill=%22%23ff5b1f%22%3E%3Ccircle cx=%229%22 cy=%2216%22 r=%223%22/%3E%3Ccircle cx=%2216%22 cy=%229%22 r=%223%22/%3E%3Ccircle cx=%2223%22 cy=%2216%22 r=%223%22/%3E%3Ccircle cx=%2216%22 cy=%2223%22 r=%223%22/%3E%3C/g%3E%3C/svg%3E" />
 
   <!-- Open Graph -->
   <meta property="og:type" content="website" />
-  <meta property="og:title" content="Chahel Paatur · Portfolio" />
-  <meta property="og:description" content="Physical AI systems — autonomous drones, RF-localization meshes, and robotic platforms that think and act in the real world." />
+  <meta property="og:title" content="Chahel Paatur" />
+  <meta property="og:description" content="Drones, spacecraft fault detection, physical AI runtimes, and a paper on Gaussian maxima." />
   <meta property="og:url" content="https://chahel.tech/" />
 
   <!-- Twitter Card -->
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="Chahel Paatur · Portfolio" />
-  <meta name="twitter:description" content="Physical AI systems — autonomous drones, RF-localization meshes, and robotic platforms that think and act in the real world." />
+  <meta name="twitter:title" content="Chahel Paatur" />
+  <meta name="twitter:description" content="Drones, spacecraft fault detection, physical AI runtimes, and a paper on Gaussian maxima." />
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=Doto:ROND,wght@0..100,100..900&family=Martian+Mono:wdth,wght@75..112.5,100..800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css" />
 </head>
-<body style="background-color: rgb(0, 0, 0); font-family: Geist" data-screen-label="Portfolio · Main">
+<body>
   <div id="root"></div>
+  <noscript>
+    <p style="padding:24px;font-family:monospace;color:#ece8df">Chahel Paatur · chahelpaatur@gmail.com · This site needs JavaScript for its animations.</p>
+  </noscript>
 
-  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
-  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react@18.3.1/umd/react.production.min.js" integrity="sha384-DGyLxAyjq0f9SPpVevD6IgztCFlnMF6oW/XQGmfe+IsZ8TqEiDrcHkMLKI6fiB/Z" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js" integrity="sha384-gTGxhz21lVGYNMcdJOyq01Edg0jhn/c22nsx0kyqP0TxaV5WVdsSH1fSDUf5YJj1" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/lenis@1.1.13/dist/lenis.min.js" integrity="sha384-B2WBjDzEjJpYvhmi2UyEn7rektqkf5suS6sNoyyrf0EBAwBHdkiXxIlU0V5Ru2ed" crossorigin="anonymous"></script>
   <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
-  <script type="text/babel" src="animations.jsx"></script>
+  <script type="text/babel" src="motion.jsx"></script>
+  <script type="text/babel" src="swarm.jsx"></script>
   <script type="text/babel" src="three-scenes.jsx"></script>
-  <script type="text/babel" src="Primitives.jsx"></script>
   <script type="text/babel" src="Sections.jsx"></script>
   <script type="text/babel" src="App.jsx"></script>
 </body>

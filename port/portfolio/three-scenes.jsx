@@ -1,7 +1,11 @@
-/* === 3D Scenes — STL model viewers with CSS 3D fallback ============= */
+/* === 3D models: STL viewers with a LIDAR-style scan reveal ===========
+   Each model arrives as an orange point cloud. When it scrolls into view
+   a scan ring sweeps bottom to top and the solid mesh fills in behind it.
+   Drag to orbit (with inertia), double-click to rescan.
+   Helpers (clamp, onFrame, easeInOut, ...) are globals from motion.jsx.
+   ==================================================================== */
 var _r3 = React;
 
-/* --- Detect WebGL ---------------------------------------------------- */
 var _webglOk = (function () {
   try {
     var c = document.createElement("canvas");
@@ -18,7 +22,7 @@ function loadThree() {
     var s = document.createElement("script");
     s.src = "https://unpkg.com/three@0.158.0/build/three.min.js";
     s.onload = function () { resolve(window.THREE); };
-    s.onerror = function () { reject(new Error("3D engine failed")); };
+    s.onerror = function () { reject(new Error("3D engine failed to load")); };
     document.head.appendChild(s);
   });
   return _threePromise;
@@ -48,7 +52,40 @@ function parseSTLBinary(buffer) {
     }
     off += 2;
   }
-  return { positions: positions, normals: normals };
+  return { positions: positions, normals: normals, tris: numTri };
+}
+
+/* --- Smooth normals ---------------------------------------------------
+   The web STLs are decimated, so flat facet normals look like static.
+   Average normals across triangles that share a vertex, but keep the
+   facet normal where the surface folds sharper than ~55°. */
+function smoothNormals(positions, normals) {
+  var count = positions.length / 3;
+  var ids = new Uint32Array(count);
+  var map = new Map();
+  var acc = [];
+  var q = 1e4;
+  for (var i = 0; i < count; i++) {
+    var k = Math.round(positions[i * 3] * q) + "," + Math.round(positions[i * 3 + 1] * q) + "," + Math.round(positions[i * 3 + 2] * q);
+    var id = map.get(k);
+    if (id === undefined) { id = acc.length / 3; map.set(k, id); acc.push(0, 0, 0); }
+    ids[i] = id;
+    acc[id * 3] += normals[i * 3];
+    acc[id * 3 + 1] += normals[i * 3 + 1];
+    acc[id * 3 + 2] += normals[i * 3 + 2];
+  }
+  var out = new Float32Array(positions.length);
+  var crease = Math.cos(55 * Math.PI / 180);
+  for (var j = 0; j < count; j++) {
+    var a = ids[j] * 3;
+    var x = acc[a], y = acc[a + 1], z = acc[a + 2];
+    var len = Math.sqrt(x * x + y * y + z * z) || 1;
+    x /= len; y /= len; z /= len;
+    var fx = normals[j * 3], fy = normals[j * 3 + 1], fz = normals[j * 3 + 2];
+    if (x * fx + y * fy + z * fz < crease) { x = fx; y = fy; z = fz; }
+    out[j * 3] = x; out[j * 3 + 1] = y; out[j * 3 + 2] = z;
+  }
+  return out;
 }
 
 /* --- Fetch with progress --------------------------------------------- */
@@ -56,6 +93,7 @@ function fetchWithProgress(url, onProgress) {
   return fetch(url).then(function (res) {
     if (!res.ok) throw new Error("Model not found (" + res.status + ")");
     var total = parseInt(res.headers.get("content-length") || "0", 10);
+    if (!res.body || !res.body.getReader) return res.arrayBuffer();
     var reader = res.body.getReader();
     var chunks = [];
     var received = 0;
@@ -76,353 +114,297 @@ function fetchWithProgress(url, onProgress) {
 function ModelViewer(props) {
   var url = props.url;
   var label = props.label;
-  var color = props.color || 0x5bb1e8;
-  var emissive = props.emissive || 0x112233;
-  var autoSpeed = props.autoSpeed || 0.004;
+  var autoSpeed = props.autoSpeed || 0.0035;
+  var tilt = props.tilt == null ? -0.18 : props.tilt;
 
-  var containerRef = _r3.useRef(null);
-  var stateRef = _r3.useRef({});
-  var _s = _r3.useState("loading");
-  var status = _s[0], setStatus = _s[1];
-  var _p = _r3.useState(0);
-  var progress = _p[0], setProgress = _p[1];
-  var _e = _r3.useState("");
-  var errMsg = _e[0], setErrMsg = _e[1];
+  var hostRef = _r3.useRef(null);
+  var _ph = _r3.useState("idle");
+  var phase = _ph[0], setPhase = _ph[1];
+  var _pc = _r3.useState(0);
+  var pct = _pc[0], setPct = _pc[1];
+  var _tr = _r3.useState(0);
+  var tris = _tr[0], setTris = _tr[1];
+  var _er = _r3.useState("");
+  var errMsg = _er[0], setErrMsg = _er[1];
 
   _r3.useEffect(function () {
-    var el = containerRef.current;
+    var el = hostRef.current;
     if (!el) return;
-    var cancelled = false;
+    var disposed = false, started = false, visible = false;
+    var api = null;
 
-    loadThree()
-      .then(function (T) {
-        if (cancelled) return;
-        var scene = new T.Scene();
-        var w = el.clientWidth || 400;
-        var h = el.clientHeight || 380;
-        var camera = new T.PerspectiveCamera(35, w / h, 0.01, 10000);
-        var renderer = new T.WebGLRenderer({ antialias: true, alpha: true });
-        renderer.setSize(w, h);
-        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-        renderer.setClearColor(0x000000, 0);
-        el.appendChild(renderer.domElement);
-
-        /* 6-point lighting */
-        scene.add(new T.AmbientLight(0xffffff, 0.8));
-        var key = new T.DirectionalLight(0xffffff, 1.5);
-        key.position.set(5, 10, 7); scene.add(key);
-        var fill = new T.DirectionalLight(0x8899cc, 0.7);
-        fill.position.set(-6, -3, -5); scene.add(fill);
-        var rim = new T.DirectionalLight(0xaabbff, 0.9);
-        rim.position.set(0, 5, -10); scene.add(rim);
-        var top = new T.DirectionalLight(0xffffff, 0.5);
-        top.position.set(0, 12, 0); scene.add(top);
-        var bottom = new T.DirectionalLight(0x445566, 0.3);
-        bottom.position.set(0, -8, 3); scene.add(bottom);
-
-        /* state */
-        var s = stateRef.current;
-        s.drag = false; s.rotX = -0.15; s.rotY = 0;
-        s.lx = 0; s.ly = 0; s.zoom = 1; s.pivot = null;
-
-        return fetchWithProgress(url, function (pct) {
-          if (!cancelled) setProgress(pct);
-        }).then(function (buf) {
-          if (cancelled) return;
-          var parsed = parseSTLBinary(buf);
-          var geo = new T.BufferGeometry();
-          geo.setAttribute("position", new T.BufferAttribute(parsed.positions, 3));
-          geo.setAttribute("normal", new T.BufferAttribute(parsed.normals, 3));
-          geo.computeBoundingBox();
-
-          var mat = new T.MeshPhongMaterial({
-            color: color,
-            emissive: emissive,
-            emissiveIntensity: 0.25,
-            specular: 0x999999,
-            shininess: 90,
-          });
-          var mesh = new T.Mesh(geo, mat);
-
-          /* --- PERFECT CENTERING ---
-             1. Find the true bounding box center
-             2. Shift mesh so center is at origin
-             3. Wrap in a pivot group so rotation stays centered */
-          var box = geo.boundingBox;
-          var center = new T.Vector3();
-          box.getCenter(center);
-          mesh.geometry.translate(-center.x, -center.y, -center.z);
-
-          /* recompute after centering */
-          geo.computeBoundingBox();
-          var size = new T.Vector3();
-          geo.boundingBox.getSize(size);
-          var maxDim = Math.max(size.x, size.y, size.z);
-
-          /* scale model to fill ~80% of view */
-          var scaleFactor = 2.4 / maxDim;
-          mesh.scale.setScalar(scaleFactor);
-
-          /* pivot group at exact origin */
-          var pivot = new T.Group();
-          pivot.add(mesh);
-          scene.add(pivot);
-          s.pivot = pivot;
-
-          /* camera centered on origin */
-          camera.position.set(0, 0, 4.0);
-          camera.lookAt(0, 0, 0);
-
-          if (!cancelled) setStatus("ready");
-
-          /* --- INTERACTION --- */
-          var cvs = renderer.domElement;
-          cvs.style.cursor = "grab";
-
-          var onDown = function (e) {
-            s.drag = true; s.lx = e.clientX; s.ly = e.clientY;
-            cvs.style.cursor = "grabbing";
-          };
-          var onMove = function (e) {
-            if (!s.drag) return;
-            s.rotY += (e.clientX - s.lx) * 0.01;
-            s.rotX += (e.clientY - s.ly) * 0.01;
-            s.rotX = Math.max(-Math.PI * 0.45, Math.min(Math.PI * 0.45, s.rotX));
-            s.lx = e.clientX; s.ly = e.clientY;
-          };
-          var onUp = function () { s.drag = false; cvs.style.cursor = "grab"; };
-          var onWheel = function (e) {
-            e.preventDefault();
-            s.zoom = Math.max(0.5, Math.min(4, s.zoom * (1 - e.deltaY * 0.002)));
-          };
-
-          /* touch */
-          var onTS = function (e) {
-            if (e.touches.length === 1) {
-              s.drag = true;
-              s.lx = e.touches[0].clientX;
-              s.ly = e.touches[0].clientY;
-            }
-          };
-          var onTM = function (e) {
-            if (!s.drag || e.touches.length !== 1) return;
-            e.preventDefault();
-            s.rotY += (e.touches[0].clientX - s.lx) * 0.01;
-            s.rotX += (e.touches[0].clientY - s.ly) * 0.01;
-            s.rotX = Math.max(-Math.PI * 0.45, Math.min(Math.PI * 0.45, s.rotX));
-            s.lx = e.touches[0].clientX;
-            s.ly = e.touches[0].clientY;
-          };
-          var onTE = function () { s.drag = false; };
-
-          cvs.addEventListener("mousedown", onDown);
-          window.addEventListener("mousemove", onMove);
-          window.addEventListener("mouseup", onUp);
-          cvs.addEventListener("wheel", onWheel, { passive: false });
-          cvs.addEventListener("touchstart", onTS, { passive: true });
-          cvs.addEventListener("touchmove", onTM, { passive: false });
-          cvs.addEventListener("touchend", onTE);
-
-          /* render loop */
-          var raf;
-          var animate = function () {
-            raf = requestAnimationFrame(animate);
-            if (s.pivot) {
-              if (!s.drag) s.rotY += autoSpeed;
-              s.pivot.rotation.x = s.rotX;
-              s.pivot.rotation.y = s.rotY;
-            }
-            camera.position.z = 4.0 / s.zoom;
-            camera.updateProjectionMatrix();
-            renderer.render(scene, camera);
-          };
-          animate();
-
-          /* resize */
-          var ro = new ResizeObserver(function () {
-            var rw = el.clientWidth, rh = el.clientHeight;
-            if (rw === 0 || rh === 0) return;
-            camera.aspect = rw / rh;
-            camera.updateProjectionMatrix();
-            renderer.setSize(rw, rh);
-          });
-          ro.observe(el);
-
-          s._cleanup = function () {
-            cancelAnimationFrame(raf); ro.disconnect();
-            cvs.removeEventListener("mousedown", onDown);
-            window.removeEventListener("mousemove", onMove);
-            window.removeEventListener("mouseup", onUp);
-            cvs.removeEventListener("wheel", onWheel);
-            cvs.removeEventListener("touchstart", onTS);
-            cvs.removeEventListener("touchmove", onTM);
-            cvs.removeEventListener("touchend", onTE);
-            renderer.dispose();
-            if (el.contains(cvs)) el.removeChild(cvs);
-          };
+    function boot() {
+      setPhase("fetch");
+      loadThree()
+        .then(function (T) {
+          return fetchWithProgress(url, function (p) { if (!disposed) setPct(p); })
+            .then(function (buf) { if (!disposed) api = mount(T, buf); });
+        })
+        .catch(function (e) {
+          if (!disposed) { setErrMsg(e.message || "3D failed"); setPhase("error"); }
         });
-      })
-      .catch(function (e) {
-        if (!cancelled) { setErrMsg(e.message || "3D failed"); setStatus("error"); }
+    }
+
+    function mount(T, buf) {
+      var w = el.clientWidth || 400, h = el.clientHeight || 400;
+      var scene = new T.Scene();
+      var camera = new T.PerspectiveCamera(32, w / h, 0.01, 100);
+      camera.position.set(0, 0.55, 4.6);
+      camera.lookAt(0, -0.05, 0);
+
+      var renderer = new T.WebGLRenderer({ antialias: true, alpha: true });
+      renderer.setSize(w, h);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      renderer.setClearColor(0x000000, 0);
+      renderer.localClippingEnabled = true;
+      el.appendChild(renderer.domElement);
+
+      /* Lighting: warm key, orange rim from behind, cool fill from below */
+      scene.add(new T.AmbientLight(0xffffff, 0.3));
+      var key = new T.DirectionalLight(0xfff4e6, 1.6); key.position.set(4, 7, 6); scene.add(key);
+      var rim = new T.DirectionalLight(0xff5b1f, 2.1); rim.position.set(-5, 3, -6); scene.add(rim);
+      var rim2 = new T.DirectionalLight(0xff8a4f, 0.9); rim2.position.set(6, 1, -4); scene.add(rim2);
+      var fill = new T.DirectionalLight(0x8fa6c4, 0.55); fill.position.set(-6, -4, 4); scene.add(fill);
+
+      var parsed = parseSTLBinary(buf);
+      var geo = new T.BufferGeometry();
+      geo.setAttribute("position", new T.BufferAttribute(parsed.positions, 3));
+      geo.setAttribute("normal", new T.BufferAttribute(smoothNormals(parsed.positions, parsed.normals), 3));
+      /* Z-up models (the drone) get laid flat so they spin like they're on a turntable */
+      if (props.zUp) geo.rotateX(-Math.PI / 2);
+      geo.computeBoundingBox();
+      var center = new T.Vector3();
+      geo.boundingBox.getCenter(center);
+      geo.translate(-center.x, -center.y, -center.z);
+      geo.computeBoundingBox();
+      geo.computeBoundingSphere();
+      var size = new T.Vector3();
+      geo.boundingBox.getSize(size);
+      var scale = 2.05 / Math.max(size.x, size.y, size.z);
+      var radius = geo.boundingSphere.radius * scale;
+
+      /* Clip planes are in world space, so the scan line stays level while the model turns */
+      var solidPlane = new T.Plane(new T.Vector3(0, -1, 0), -radius);
+      var cloudPlane = new T.Plane(new T.Vector3(0, 1, 0), radius);
+
+      var mat = new T.MeshPhongMaterial({
+        color: 0xd6cfc2, specular: 0x3a342e, shininess: 38,
+        emissive: 0x120804, clippingPlanes: [solidPlane]
+      });
+      var mesh = new T.Mesh(geo, mat);
+      mesh.scale.setScalar(scale);
+
+      /* Point cloud: subsample vertices to roughly 40k points */
+      var total = parsed.positions.length / 3;
+      var stride = Math.max(1, Math.floor(total / 40000));
+      var count = Math.floor(total / stride);
+      var cloudPos = new Float32Array(count * 3);
+      for (var i = 0, j = 0; i < count; i++, j += stride) {
+        cloudPos[i * 3] = parsed.positions[j * 3];
+        cloudPos[i * 3 + 1] = parsed.positions[j * 3 + 1];
+        cloudPos[i * 3 + 2] = parsed.positions[j * 3 + 2];
+      }
+      var cloudGeo = new T.BufferGeometry();
+      cloudGeo.setAttribute("position", new T.BufferAttribute(cloudPos, 3));
+      var cloudMat = new T.PointsMaterial({
+        color: 0xff5b1f, size: 0.022, sizeAttenuation: true, transparent: true,
+        opacity: 0.85, depthWrite: false, clippingPlanes: [cloudPlane]
+      });
+      var cloud = new T.Points(cloudGeo, cloudMat);
+      cloud.scale.setScalar(scale);
+
+      var pivot = new T.Group();
+      pivot.add(mesh);
+      pivot.add(cloud);
+      scene.add(pivot);
+
+      /* Scan ring + faint plane at the cut */
+      var ring = new T.Mesh(
+        new T.RingGeometry(radius * 1.02, radius * 1.02 + 0.012, 128),
+        new T.MeshBasicMaterial({ color: 0xff5b1f, transparent: true, opacity: 0.95, side: T.DoubleSide, depthWrite: false })
+      );
+      ring.rotation.x = -Math.PI / 2;
+      var disc = new T.Mesh(
+        new T.CircleGeometry(radius * 1.02, 96),
+        new T.MeshBasicMaterial({ color: 0xff5b1f, transparent: true, opacity: 0.07, side: T.DoubleSide, depthWrite: false })
+      );
+      disc.rotation.x = -Math.PI / 2;
+      var scanner = new T.Group();
+      scanner.add(ring); scanner.add(disc);
+      scanner.visible = false;
+      scene.add(scanner);
+
+      /* Turntable grid under the model */
+      var grid = new T.PolarGridHelper(radius * 1.25, 24, 6, 96, 0x6b665e, 0x3a3833);
+      grid.position.y = -size.y * scale * 0.5 - 0.06;
+      grid.material.transparent = true;
+      grid.material.opacity = 0.5;
+      scene.add(grid);
+
+      setTris(parsed.tris);
+      setPhase("cloud");
+
+      var s = { drag: false, rotX: tilt, rotY: 0.6, velY: 0, velX: 0, lx: 0, ly: 0, scanT0: -1, scanned: false, lastPct: -1 };
+      var cvs = renderer.domElement;
+      cvs.style.touchAction = "pan-y";
+      cvs.setAttribute("data-lock", "DRAG TO ORBIT");
+
+      var setCut = function (y) {
+        solidPlane.constant = y;
+        cloudPlane.constant = -y;
+        scanner.position.y = y;
+      };
+      setCut(-radius);
+
+      var startScan = function () {
+        if (window.reduceMotion) { setCut(radius + 0.01); cloud.visible = false; s.scanned = true; setPhase("ready"); return; }
+        s.scanT0 = performance.now();
+        s.scanned = false;
+        cloud.visible = true;
+        scanner.visible = true;
+        setPhase("scan");
+      };
+
+      var onDown = function (e) {
+        s.drag = true; s.lx = e.clientX; s.ly = e.clientY;
+        cvs.classList.add("grabbing");
+        if (cvs.setPointerCapture) cvs.setPointerCapture(e.pointerId);
+      };
+      var onMove = function (e) {
+        if (!s.drag) return;
+        var dx = e.clientX - s.lx, dy = e.clientY - s.ly;
+        s.velY = dx * 0.008;
+        s.velX = dy * 0.006;
+        s.rotY += s.velY;
+        s.rotX = clamp(s.rotX + s.velX, -1.1, 1.1);
+        s.lx = e.clientX; s.ly = e.clientY;
+      };
+      var onUp = function () { s.drag = false; cvs.classList.remove("grabbing"); };
+      var onDbl = function () { startScan(); };
+      cvs.addEventListener("pointerdown", onDown);
+      cvs.addEventListener("pointermove", onMove);
+      cvs.addEventListener("pointerup", onUp);
+      cvs.addEventListener("pointercancel", onUp);
+      cvs.addEventListener("dblclick", onDbl);
+
+      var render = function () { renderer.render(scene, camera); };
+
+      var off = onFrame(function (f) {
+        if (!visible && s.scanT0 < 0) return;
+        if (!s.drag) {
+          s.rotY += autoSpeed + s.velY;
+          s.velY *= 0.95;
+        }
+        pivot.rotation.x = s.rotX;
+        pivot.rotation.y = s.rotY;
+        if (s.scanT0 >= 0) {
+          var t = clamp((f.t - s.scanT0) / 2600);
+          var y = -radius + easeInOut(t) * radius * 2.02;
+          setCut(y);
+          var p = Math.round(t * 100);
+          if (p - s.lastPct >= 4 || t === 1) { s.lastPct = p; setPct(p); }
+          if (t >= 1) {
+            s.scanT0 = -1; s.scanned = true; s.lastPct = -1;
+            cloud.visible = false; scanner.visible = false;
+            setPhase("ready");
+          }
+        }
+        render();
       });
 
+      var ro = new ResizeObserver(function () {
+        var rw = el.clientWidth, rh = el.clientHeight;
+        if (!rw || !rh) return;
+        camera.aspect = rw / rh;
+        camera.updateProjectionMatrix();
+        renderer.setSize(rw, rh);
+        render();
+      });
+      ro.observe(el);
+      render();
+
+      return {
+        onVisible: function () { if (!s.scanned && s.scanT0 < 0) startScan(); },
+        dispose: function () {
+          off(); ro.disconnect();
+          cvs.removeEventListener("pointerdown", onDown);
+          cvs.removeEventListener("pointermove", onMove);
+          cvs.removeEventListener("pointerup", onUp);
+          cvs.removeEventListener("pointercancel", onUp);
+          cvs.removeEventListener("dblclick", onDbl);
+          geo.dispose(); cloudGeo.dispose(); mat.dispose(); cloudMat.dispose();
+          renderer.dispose();
+          if (el.contains(cvs)) el.removeChild(cvs);
+        }
+      };
+    }
+
+    var near = new IntersectionObserver(function (entries) {
+      if (entries[0].isIntersecting && !started) { started = true; boot(); near.disconnect(); }
+    }, { rootMargin: "100% 120%" });
+    var seen = new IntersectionObserver(function (entries) {
+      visible = entries[0].isIntersecting;
+      if (visible && api) api.onVisible();
+    }, { threshold: 0.35 });
+    near.observe(el);
+    seen.observe(el);
+
+    /* If the model finishes loading while already on screen, scan right away */
+    var poll = setInterval(function () {
+      if (api && visible) { api.onVisible(); clearInterval(poll); }
+    }, 250);
+
     return function () {
-      cancelled = true;
-      if (stateRef.current._cleanup) stateRef.current._cleanup();
+      disposed = true;
+      clearInterval(poll);
+      near.disconnect(); seen.disconnect();
+      if (api) api.dispose();
     };
   }, [url]);
 
+  var status =
+    phase === "idle" ? "STANDBY" :
+    phase === "fetch" ? "FETCH " + String(pct).padStart(2, "0") + "%" :
+    phase === "cloud" ? "POINT CLOUD · " + tris.toLocaleString("en-US") + " TRI" :
+    phase === "scan" ? "SCANNING " + String(pct).padStart(2, "0") + "%" :
+    phase === "ready" ? "MESH LOCKED · " + tris.toLocaleString("en-US") + " TRI" :
+    "ERR · " + errMsg;
+
   return (
-    <div className="stl-viewer" ref={containerRef}>
-      {status === "loading" && (
-        <div className="stl-loading">
-          <div className="stl-spinner" />
-          <span className="mono stl-pct">{progress > 0 ? progress + "%" : "Loading model\u2026"}</span>
-        </div>
-      )}
-      {status === "error" && <div className="stl-error mono">{errMsg}</div>}
-      {label && <div className="stl-label mono">{label}</div>}
-      {status === "ready" && <div className="stl-hint mono">drag to rotate · scroll to zoom</div>}
+    <div className="viewer" ref={hostRef}>
+      <div className="viewer-hud">
+        <span className="viewer-label">{label}</span>
+        <span className={"viewer-status" + (phase === "scan" || phase === "fetch" ? " live" : "")}>{status}</span>
+      </div>
+      {phase === "fetch" && <div className="viewer-bar"><i style={{ width: pct + "%" }} /></div>}
+      {(phase === "ready" || phase === "cloud") && <div className="viewer-hint">DRAG TO ORBIT · DOUBLE-CLICK TO RESCAN</div>}
+    </div>
+  );
+}
+
+function ViewerFallback(props) {
+  return (
+    <div className="viewer viewer-off">
+      <div className="viewer-hud"><span className="viewer-label">{props.label}</span><span className="viewer-status">NO WEBGL</span></div>
+      <div className="viewer-off-msg">This browser can't draw the 3D model.</div>
     </div>
   );
 }
 
 /* =====================================================================
-   CSS 3D FALLBACK SCENES (used when WebGL is unavailable)
-   ===================================================================== */
-function DroneFallback() {
-  return (
-    <div className="drone3d">
-      <div className="drone3d-stage">
-        <div className="drone-grid"></div>
-        <div className="drone-body">
-          <div className="drone-arm a1"></div>
-          <div className="drone-arm a2"></div>
-          <div className="drone-core"><div className="drone-fpv"></div></div>
-          <div className="drone-motor m1"><div className="drone-prop"></div><div className="drone-disc"></div></div>
-          <div className="drone-motor m2"><div className="drone-prop r"></div><div className="drone-disc"></div></div>
-          <div className="drone-motor m3"><div className="drone-prop"></div><div className="drone-disc"></div></div>
-          <div className="drone-motor m4"><div className="drone-prop r"></div><div className="drone-disc"></div></div>
-        </div>
-      </div>
-    </div>
-  );
-}
-function SauronFallback() {
-  var nodes = [{ x: 14, y: 30 }, { x: 35, y: 60 }, { x: 65, y: 25 }, { x: 86, y: 70 }, { x: 50, y: 85 }];
-  var target = { x: 50, y: 50 };
-  return (
-    <div className="viz-sauron">
-      <div className="grid">
-        {nodes.map(function (n, i) {
-          var dx = target.x - n.x, dy = target.y - n.y;
-          var len = Math.sqrt(dx * dx + dy * dy);
-          var ang = Math.atan2(dy, dx) * 180 / Math.PI;
-          return (
-            <React.Fragment key={i}>
-              <span className="line" style={{ left: n.x + "%", top: n.y + "%", width: len + "%", transform: "rotate(" + ang + "deg)" }} />
-              <span className="node" style={{ left: n.x + "%", top: n.y + "%" }} />
-            </React.Fragment>
-          );
-        })}
-        <span className="target" style={{ left: target.x + "%", top: target.y + "%" }} />
-      </div>
-    </div>
-  );
-}
-function HumanoidFallback() {
-  return (
-    <div className="humanoid3d">
-      <div className="humanoid-floor"></div>
-      <svg viewBox="0 0 200 280" className="humanoid-svg">
-        <defs>
-          <linearGradient id="hum-body" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0" stopColor="#1d1d22" />
-            <stop offset="1" stopColor="#0e0e11" />
-          </linearGradient>
-        </defs>
-        <ellipse cx="100" cy="270" rx="56" ry="8" fill="none" stroke="currentColor" strokeWidth="0.8" opacity="0.5" />
-        <g className="hum-leg-l">
-          <rect x="84" y="170" width="14" height="60" rx="4" fill="url(#hum-body)" stroke="#39393f" strokeWidth="0.6" />
-          <rect x="83" y="226" width="16" height="40" rx="3" fill="url(#hum-body)" stroke="#39393f" strokeWidth="0.6" />
-          <ellipse cx="91" cy="266" rx="12" ry="4" fill="#16161a" stroke="#39393f" />
-        </g>
-        <g className="hum-leg-r">
-          <rect x="102" y="170" width="14" height="60" rx="4" fill="url(#hum-body)" stroke="#39393f" strokeWidth="0.6" />
-          <rect x="101" y="226" width="16" height="40" rx="3" fill="url(#hum-body)" stroke="#39393f" strokeWidth="0.6" />
-          <ellipse cx="109" cy="266" rx="12" ry="4" fill="#16161a" stroke="#39393f" />
-        </g>
-        <g className="hum-torso">
-          <rect x="72" y="90" width="56" height="62" rx="6" fill="url(#hum-body)" stroke="#39393f" strokeWidth="0.6" />
-          <rect x="78" y="152" width="44" height="28" rx="4" fill="url(#hum-body)" stroke="#39393f" strokeWidth="0.6" />
-          <rect x="86" y="108" width="28" height="3" fill="currentColor" />
-          <circle cx="100" cy="124" r="3" fill="currentColor" opacity="0.7" />
-          <circle cx="100" cy="124" r="6" fill="none" stroke="currentColor" strokeWidth="0.5" opacity="0.5">
-            <animate attributeName="r" values="3;9;3" dur="2.4s" repeatCount="indefinite" />
-            <animate attributeName="opacity" values="0.7;0;0.7" dur="2.4s" repeatCount="indefinite" />
-          </circle>
-        </g>
-        <g className="hum-arm hum-arm-l">
-          <rect x="56" y="92" width="14" height="50" rx="5" fill="url(#hum-body)" stroke="#39393f" strokeWidth="0.6" />
-          <rect x="56" y="138" width="14" height="46" rx="4" fill="url(#hum-body)" stroke="#39393f" strokeWidth="0.6" />
-          <rect x="54" y="180" width="18" height="14" rx="3" fill="#16161a" stroke="#39393f" strokeWidth="0.6" />
-        </g>
-        <g className="hum-arm hum-arm-r">
-          <rect x="130" y="92" width="14" height="50" rx="5" fill="url(#hum-body)" stroke="#39393f" strokeWidth="0.6" />
-          <rect x="130" y="138" width="14" height="46" rx="4" fill="url(#hum-body)" stroke="#39393f" strokeWidth="0.6" />
-          <rect x="128" y="180" width="18" height="14" rx="3" fill="#16161a" stroke="#39393f" strokeWidth="0.6" />
-        </g>
-        <g className="hum-head">
-          <rect x="78" y="40" width="44" height="52" rx="10" fill="url(#hum-body)" stroke="#39393f" strokeWidth="0.6" />
-          <rect x="82" y="58" width="36" height="10" rx="2" fill="#0a0a0c" stroke="currentColor" strokeWidth="0.5" />
-          <rect x="85" y="61" width="30" height="4" fill="currentColor" opacity="0.9" />
-          <line x1="100" y1="40" x2="100" y2="30" stroke="currentColor" strokeWidth="0.8" />
-          <circle cx="100" cy="28" r="2" fill="currentColor" />
-        </g>
-      </svg>
-      <div className="humanoid-tag mono">ATLAS-01 / IDLE</div>
-    </div>
-  );
-}
-
-/* =====================================================================
-   PUBLIC SCENES — WebGL with STL or CSS fallback
+   PUBLIC SCENES
    ===================================================================== */
 function DroneScene() {
-  if (!_webglOk) return <DroneFallback />;
-  return <ModelViewer url="models/drone-web.stl" label="DRONE / FPV" color={0xe08030} emissive={0x331800} />;
+  if (!_webglOk) return <ViewerFallback label="DRONE / FPV" />;
+  return <ModelViewer url="models/drone-mesh.stl" label="DRONE / FPV" zUp tilt={0.38} />;
 }
 function SauronScene() {
-  if (!_webglOk) return <SauronFallback />;
-  return <ModelViewer url="models/sauron-web.stl" label="SAURON / RF" color={0xcc3333} emissive={0x330808} />;
+  if (!_webglOk) return <ViewerFallback label="SAURON / RF NODE" />;
+  return <ModelViewer url="models/sauron-mesh.stl" label="SAURON / RF NODE" tilt={-0.3} />;
 }
 function HumanoidScene() {
-  if (!_webglOk) return <HumanoidFallback />;
-  return <ModelViewer url="models/atlas-web.stl" label="ATLAS-01 / IDLE" color={0x5bb1e8} emissive={0x0a1a2a} />;
+  if (!_webglOk) return <ViewerFallback label="ATLAS-01" />;
+  return <ModelViewer url="models/atlas-mesh.stl" label="ATLAS-01" tilt={-0.08} />;
 }
 
-/* === AETHER: ASCII art visual ======================================== */
-function AetherScene() {
-  return (
-    <div className="aether3d">
-      <div className="aether-mark mono" style={{ color: "rgb(255, 127, 0)" }}>AETHER</div>
-      <pre className="aether-ascii">{`    ████████████████████████████████
-   █░██████████████████████████████░█
-  █░████╔═══════════════════╗████░█
-  █░████║  ▄████▄   ▄████▄  ║████░█
-  █░████║ ████████████████ ║████░█
-  █░████║ ██░██████████░██ ║████░█
-  █░████║ █▀▀████████▀▀█ ║████░█
-  █░████║  ▀████▀   ▀████▀  ║████░█
-  █░████║▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄║████░█
-  █░████║  ━━━━━━━━━━━━━━━  ║████░█
-  █░████║  ▌ AETHER  v3 ▐  ║████░█
-  █░████║  ━━━━━━━━━━━━━━━  ║████░█
-  █░████╚═══════════════════╝████░█
-   █░██████████████████████████████░█
-    ████████████████████████████████`}</pre>
-    </div>
-  );
-}
-
-Object.assign(window, { DroneScene: DroneScene, AetherScene: AetherScene, HumanoidScene: HumanoidScene, SauronScene: SauronScene });
+Object.assign(window, { DroneScene: DroneScene, HumanoidScene: HumanoidScene, SauronScene: SauronScene });
