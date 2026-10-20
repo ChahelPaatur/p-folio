@@ -495,7 +495,13 @@ div.aether-k { padding: 12px 16px 2px; }
 a.bib-main { background: linear-gradient(rgba(255, 91, 31, 0.32), rgba(255, 91, 31, 0.32)) 0 88% / 0% 34% no-repeat; transition: background-size 0.45s var(--ease); }
 a.bib-main:hover { background-size: 100% 34%; }
 .bib-note { grid-column: 2; margin-top: 3px; font-size: 0.85em; font-style: italic; color: var(--paper-mute); }
-.tex-page { margin-top: 60px; text-align: center; font-size: 16px; }
+.bib-line { grid-column: 2; }
+.bib-legal { font-style: italic; color: #c93d14; white-space: nowrap; }
+.bib-legal sup, .tex-foot sup { font-size: 0.65em; font-style: normal; margin-left: 1px; }
+/* LaTeX-style footnote: short rule, small type */
+.tex-foot { position: relative; margin-top: 56px; padding-top: 10px; font-size: 0.8em; line-height: 1.45; color: var(--paper-mute); }
+.tex-foot::before { content: ""; position: absolute; top: 0; left: 0; width: 34%; border-top: 1px solid var(--paper-line); }
+.tex-page { margin-top: 40px; text-align: center; font-size: 16px; }
 
 /* === Logbook ======================================================== */
 .log { position: relative; background: var(--ink); padding: calc(var(--nav-h) + 84px) var(--gut) 100px; }

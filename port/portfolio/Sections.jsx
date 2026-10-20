@@ -715,7 +715,7 @@ function Papers() {
 
         <div className="tex-abstract">
           <span className="tex-abs-k">Abstract</span>
-          <p>Five preprints and three filings, across probability, program synthesis, spacecraft autonomy and computing. The newest is pure math. Entries are listed newest first; links go to the full text.</p>
+          <p>Five preprints and three filings, across probability, program synthesis, spacecraft autonomy and computing, plus one appendix we don't talk about at dinner. The newest is pure math. Entries are listed newest first; links go to the full text.</p>
         </div>
 
         <h3 className="tex-h"><span>1</span>Newest</h3>
@@ -767,6 +767,28 @@ function Papers() {
             </li>
           ))}
         </ol>
+
+        <h3 className="tex-h"><span>A</span>Appendix: recreational research</h3>
+        <ol className="bib">
+          <li>
+            <span className="bib-n">[A1]</span>
+            <span className="bib-line">
+              <a className="bib-main" href="https://smarxiv.org/BerkeleyFiles.pdf" target="_blank" rel="noreferrer" data-lock="SMARXIV">
+                North-Spot-6738, Best-Product2916, TrexTrom. <i>UC Berkeley Class of 2030 Portal Astrology Report.</i> Berkeley Observatory, smarXiv, 2026.
+              </a>{" "}
+              <span className="bib-legal">(completely legal)<sup>1</sup></span>
+            </span>
+            <span className="bib-note">
+              Decision-day astrology, but with LDAP: what your CAS login screen says about where your application is sitting
+              in Slate, PeopleSoft and CalNet, and why a 10-digit ID starting with 30 might be good news.
+            </span>
+          </li>
+        </ol>
+
+        <div className="tex-foot">
+          <sup>1</sup> Per the report itself: observed system behavior plus Berkeley's own public documentation, logged in
+          as yourself. No firewalls were harmed.
+        </div>
 
         <div className="tex-page">2</div>
       </div>
