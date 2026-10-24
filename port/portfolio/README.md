@@ -33,6 +33,10 @@ Helpers defined in `motion.jsx` (`clamp`, `lerp`, `onFrame`, `StretchTitle`, ...
 
 `models/*-mesh.stl` are rebuilt from the full-resolution GLBs in git history using vertex clustering (about 70k to 110k triangles each). The older `*-web.stl` files are unused: they were triangle subsets with gaps, which is why they rendered speckled.
 
+## Analytics
+
+Vercel Web Analytics, loaded with a plain script tag in `index.html` (no npm package, since there's no build). Visitors and page views show up under Analytics in the Vercel project. The script is served by Vercel at `/_vercel/insights/script.js`, so it 404s on a local server, which is expected.
+
 ## Keyboard
 
 `1` to `5` jump to sections, `0` goes back to the top.
